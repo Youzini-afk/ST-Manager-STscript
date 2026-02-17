@@ -46,7 +46,6 @@
               导出
             </button>
             <button class="btn" type="button" @click="triggerImport">导入</button>
-            <button class="btn" type="button" title="切换主题 (Theme)" @click="toggleTheme">🎨</button>
             <input
               ref="importFileInput"
               class="hidden-input"
@@ -904,88 +903,88 @@ type ThemeKey = 'ocean' | 'nebula' | 'forest' | 'sunset' | 'coffee';
 
 const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }> = {
   ocean: {
-    name: 'Ocean (Default)',
+    name: 'Ocean',
     colors: {
-      '--wb-bg-root': 'linear-gradient(145deg, #0f172a 0%, #111827 45%, #1e293b 100%)',
-      '--wb-bg-panel': 'rgba(30, 41, 59, 0.25)',
-      '--wb-text-main': '#e2e8f0',
-      '--wb-text-muted': '#94a3b8',
-      '--wb-primary': '#3b82f6',
-      '--wb-primary-light': '#93c5fd',
-      '--wb-primary-hover': 'rgba(30, 41, 59, 0.6)',
-      '--wb-primary-soft': 'rgba(59, 130, 246, 0.15)',
-      '--wb-primary-glow': 'rgba(59, 130, 246, 0.5)',
-      '--wb-input-bg': 'rgba(0, 0, 0, 0.25)',
-      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.35)',
-      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.45)',
+      '--wb-bg-root': '#0f1923',
+      '--wb-bg-panel': 'rgba(255, 255, 255, 0.04)',
+      '--wb-text-main': '#d4dbe5',
+      '--wb-text-muted': '#7b8a9e',
+      '--wb-primary': '#5b8cbf',
+      '--wb-primary-light': '#8cb4d8',
+      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
+      '--wb-primary-soft': 'rgba(91, 140, 191, 0.12)',
+      '--wb-primary-glow': 'rgba(91, 140, 191, 0.35)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
     },
   },
   nebula: {
     name: 'Nebula',
     colors: {
-      '--wb-bg-root': 'linear-gradient(145deg, #0f0b29 0%, #1a103c 45%, #2d1b4e 100%)',
-      '--wb-bg-panel': 'rgba(40, 20, 60, 0.25)',
-      '--wb-text-main': '#e9d5ff',
-      '--wb-text-muted': '#a855f7',
-      '--wb-primary': '#d8b4fe',
-      '--wb-primary-light': '#e9d5ff',
-      '--wb-primary-hover': 'rgba(40, 20, 60, 0.6)',
-      '--wb-primary-soft': 'rgba(216, 180, 254, 0.15)',
-      '--wb-primary-glow': 'rgba(216, 180, 254, 0.5)',
-      '--wb-input-bg': 'rgba(20, 10, 30, 0.3)',
-      '--wb-input-bg-hover': 'rgba(30, 15, 45, 0.4)',
-      '--wb-input-bg-focus': 'rgba(40, 20, 60, 0.5)',
+      '--wb-bg-root': '#151020',
+      '--wb-bg-panel': 'rgba(255, 255, 255, 0.035)',
+      '--wb-text-main': '#d0cbe0',
+      '--wb-text-muted': '#8a7faa',
+      '--wb-primary': '#9b85c4',
+      '--wb-primary-light': '#b9a8d8',
+      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
+      '--wb-primary-soft': 'rgba(155, 133, 196, 0.12)',
+      '--wb-primary-glow': 'rgba(155, 133, 196, 0.35)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
     },
   },
   forest: {
     name: 'Forest',
     colors: {
-      '--wb-bg-root': 'linear-gradient(145deg, #022c22 0%, #064e3b 45%, #065f46 100%)',
-      '--wb-bg-panel': 'rgba(6, 78, 59, 0.25)',
-      '--wb-text-main': '#d1fae5',
-      '--wb-text-muted': '#34d399',
-      '--wb-primary': '#10b981',
-      '--wb-primary-light': '#6ee7b7',
-      '--wb-primary-hover': 'rgba(6, 78, 59, 0.6)',
-      '--wb-primary-soft': 'rgba(16, 185, 129, 0.15)',
-      '--wb-primary-glow': 'rgba(16, 185, 129, 0.5)',
-      '--wb-input-bg': 'rgba(0, 20, 10, 0.3)',
-      '--wb-input-bg-hover': 'rgba(0, 30, 15, 0.4)',
-      '--wb-input-bg-focus': 'rgba(0, 40, 20, 0.5)',
+      '--wb-bg-root': '#0e1a16',
+      '--wb-bg-panel': 'rgba(255, 255, 255, 0.035)',
+      '--wb-text-main': '#c8dbd2',
+      '--wb-text-muted': '#6b9a85',
+      '--wb-primary': '#5ea88a',
+      '--wb-primary-light': '#88c4a8',
+      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
+      '--wb-primary-soft': 'rgba(94, 168, 138, 0.12)',
+      '--wb-primary-glow': 'rgba(94, 168, 138, 0.35)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
     },
   },
   sunset: {
     name: 'Sunset',
     colors: {
-      '--wb-bg-root': 'linear-gradient(145deg, #450a0a 0%, #7f1d1d 45%, #991b1b 100%)',
-      '--wb-bg-panel': 'rgba(127, 29, 29, 0.25)',
-      '--wb-text-main': '#fecaca',
-      '--wb-text-muted': '#f87171',
-      '--wb-primary': '#fbbf24',
-      '--wb-primary-light': '#fcd34d',
-      '--wb-primary-hover': 'rgba(70, 20, 20, 0.6)',
-      '--wb-primary-soft': 'rgba(251, 191, 36, 0.15)',
-      '--wb-primary-glow': 'rgba(251, 191, 36, 0.5)',
-      '--wb-input-bg': 'rgba(30, 10, 5, 0.3)',
-      '--wb-input-bg-hover': 'rgba(45, 15, 10, 0.4)',
-      '--wb-input-bg-focus': 'rgba(60, 20, 15, 0.5)',
+      '--wb-bg-root': '#1a1210',
+      '--wb-bg-panel': 'rgba(255, 255, 255, 0.035)',
+      '--wb-text-main': '#dbd0ca',
+      '--wb-text-muted': '#a0877a',
+      '--wb-primary': '#c4886a',
+      '--wb-primary-light': '#d4a890',
+      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
+      '--wb-primary-soft': 'rgba(196, 136, 106, 0.12)',
+      '--wb-primary-glow': 'rgba(196, 136, 106, 0.35)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
     },
   },
   coffee: {
     name: 'Coffee',
     colors: {
-      '--wb-bg-root': 'linear-gradient(145deg, #451a03 0%, #78350f 45%, #92400e 100%)',
-      '--wb-bg-panel': 'rgba(120, 53, 15, 0.25)',
-      '--wb-text-main': '#fde68a',
-      '--wb-text-muted': '#d97706',
-      '--wb-primary': '#f59e0b',
-      '--wb-primary-light': '#fde68a',
-      '--wb-primary-hover': 'rgba(80, 40, 20, 0.6)',
-      '--wb-primary-soft': 'rgba(245, 158, 11, 0.15)',
-      '--wb-primary-glow': 'rgba(245, 158, 11, 0.5)',
-      '--wb-input-bg': 'rgba(40, 20, 10, 0.3)',
-      '--wb-input-bg-hover': 'rgba(50, 25, 12, 0.4)',
-      '--wb-input-bg-focus': 'rgba(60, 30, 15, 0.5)',
+      '--wb-bg-root': '#17130e',
+      '--wb-bg-panel': 'rgba(255, 255, 255, 0.035)',
+      '--wb-text-main': '#d5cec5',
+      '--wb-text-muted': '#9a8a78',
+      '--wb-primary': '#b8956a',
+      '--wb-primary-light': '#cfb08e',
+      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
+      '--wb-primary-soft': 'rgba(184, 149, 106, 0.12)',
+      '--wb-primary-glow': 'rgba(184, 149, 106, 0.35)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
     },
   },
 };
@@ -4574,6 +4573,7 @@ onMounted(() => {
   window.addEventListener('wb-helper:refresh', onPanelRefresh);
   window.addEventListener('wb-helper:save', onPanelSave);
   window.addEventListener('wb-helper:discard', onPanelDiscard);
+  window.addEventListener('wb-helper:toggle-theme', toggleTheme);
   hostResizeWindow.value = resolveHostWindow();
   const hostDoc = hostResizeWindow.value.document;
   hostDoc.addEventListener('pointerdown', onHostPointerDownForWorldbookPicker, true);
@@ -4595,6 +4595,7 @@ onUnmounted(() => {
   window.removeEventListener('wb-helper:refresh', onPanelRefresh);
   window.removeEventListener('wb-helper:save', onPanelSave);
   window.removeEventListener('wb-helper:discard', onPanelDiscard);
+  window.removeEventListener('wb-helper:toggle-theme', toggleTheme);
   hostResizeWindow.value?.document.removeEventListener('pointerdown', onHostPointerDownForWorldbookPicker, true);
   hostResizeWindow.value?.document.removeEventListener('keydown', onHostKeyDownForWorldbookPicker, true);
   hostResizeWindow.value?.removeEventListener('resize', handleFloatingWindowResize);
