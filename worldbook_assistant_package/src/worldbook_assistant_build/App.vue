@@ -1289,7 +1289,6 @@ watch(
     batchInContent,
     batchInKeys,
     batchSearchScope,
-    selectedEntryUid,
   ],
   () => {
     resetFindState();
