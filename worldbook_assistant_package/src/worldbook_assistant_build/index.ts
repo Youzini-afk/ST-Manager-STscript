@@ -35,8 +35,9 @@ function ensurePanelStyle(): void {
 #${PANEL_ID} {
   position: fixed;
   z-index: 10020;
-  left: 60px;
-  top: 8px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   width: min(1280px, calc(100vw - 120px));
   height: calc(100vh - 16px);
   min-width: 920px;
@@ -208,6 +209,7 @@ function enablePanelDrag(panel: HTMLDivElement): void {
     panel.style.top = `${nextTop}px`;
     panel.style.right = 'auto';
     panel.style.bottom = 'auto';
+    panel.style.transform = 'none';
   };
 
   const onMouseUp = () => {
@@ -234,10 +236,25 @@ function enablePanelDrag(panel: HTMLDivElement): void {
     panel.style.top = `${rect.top}px`;
     panel.style.right = 'auto';
     panel.style.bottom = 'auto';
+    panel.style.transform = 'none';
     hostWin.document.addEventListener('mousemove', onMouseMove, true);
     hostWin.document.addEventListener('mouseup', onMouseUp, true);
     event.preventDefault();
   });
+}
+
+function centerPanel(panel: HTMLDivElement): void {
+  const hostWin = getHostWindow();
+  const rect = panel.getBoundingClientRect();
+  const maxLeft = Math.max(8, hostWin.innerWidth - rect.width - 8);
+  const maxTop = Math.max(8, hostWin.innerHeight - rect.height - 8);
+  const nextLeft = Math.min(maxLeft, Math.max(8, Math.round((hostWin.innerWidth - rect.width) / 2)));
+  const nextTop = Math.min(maxTop, Math.max(8, Math.round((hostWin.innerHeight - rect.height) / 2)));
+  panel.style.left = `${nextLeft}px`;
+  panel.style.top = `${nextTop}px`;
+  panel.style.right = 'auto';
+  panel.style.bottom = 'auto';
+  panel.style.transform = 'none';
 }
 
 function setMenuActive(active: boolean): void {
@@ -253,7 +270,14 @@ function showPanel(): void {
   const doc = getHostDocument();
   const $panel = ensurePanelElement();
   mountAppIntoPanel();
+  $panel.css('visibility', 'hidden');
   $panel.addClass('active');
+  const panelElement = $panel[0] as HTMLDivElement;
+  centerPanel(panelElement);
+  $panel.css('visibility', '');
+  requestAnimationFrame(() => {
+    centerPanel(panelElement);
+  });
   isPanelVisible = true;
   setMenuActive(true);
   // 打开面板后主动触发一次刷新
