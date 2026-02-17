@@ -4519,10 +4519,10 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 8px 10px;
-  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.25);
+  margin-bottom: 8px;
 }
 
 .wb-title {
@@ -4549,13 +4549,12 @@ onUnmounted(() => {
 
 .wb-toolbar {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
   align-items: center;
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 8px;
-  background: rgba(15, 23, 42, 0.55);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(30, 41, 59, 0.25);
 }
 
 .toolbar-label {
@@ -4666,12 +4665,11 @@ onUnmounted(() => {
 }
 
 .wb-bindings {
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 8px;
+  border-radius: 12px;
+  padding: 12px;
   display: grid;
   gap: 8px;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(30, 41, 59, 0.25);
 }
 
 .wb-history-shortcuts {
@@ -4683,12 +4681,11 @@ onUnmounted(() => {
 }
 
 .global-mode-panel {
-  border: 1px solid #334155;
-  border-radius: 9px;
-  background: rgba(15, 23, 42, 0.58);
-  padding: 8px;
+  border-radius: 12px;
+  background: rgba(30, 41, 59, 0.25);
+  padding: 12px;
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .global-mode-head {
@@ -4981,13 +4978,12 @@ onUnmounted(() => {
 
 .wb-entry-list,
 .wb-editor {
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 8px;
+  border-radius: 12px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(15, 23, 42, 0.55);
+  background: transparent;
   min-height: 0;
 }
 
@@ -5014,16 +5010,17 @@ onUnmounted(() => {
 .entry-item {
   width: 100%;
   text-align: left;
-  border: 1px solid #334155;
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.9));
+  border: none;
+  background: transparent;
   color: #e2e8f0;
   border-radius: 8px;
-  padding: 8px 8px 7px 10px;
+  padding: 10px 12px 10px 14px;
   cursor: pointer;
   display: grid;
   gap: 6px;
   position: relative;
-  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+  transition: background-color 0.15s ease;
+  margin-bottom: 4px;
 }
 
 .entry-item::before {
@@ -5054,13 +5051,13 @@ onUnmounted(() => {
 }
 
 .entry-item:hover {
-  border-color: #475569;
-  transform: translateY(-1px);
+  background: rgba(30, 41, 59, 0.6);
+  transform: none;
 }
 
 .entry-item.selected {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5) inset, 0 6px 16px rgba(14, 116, 144, 0.3);
+  background: rgba(56, 189, 248, 0.15);
+  box-shadow: none;
 }
 
 .entry-item.disabled {
@@ -5216,10 +5213,10 @@ onUnmounted(() => {
 }
 
 .editor-center {
-  border: 1px solid #1e293b;
-  border-radius: 10px;
-  background: rgba(2, 6, 23, 0.7);
-  padding: 10px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.4);
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -5232,8 +5229,8 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 10px;
   align-items: flex-end;
-  border-bottom: 1px solid #1e293b;
-  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 12px;
 }
 
 .editor-comment {
@@ -5344,10 +5341,10 @@ onUnmounted(() => {
 }
 
 .editor-card {
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 8px;
-  background: rgba(15, 23, 42, 0.7);
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.4);
   display: grid;
   gap: 7px;
 }
@@ -5364,18 +5361,19 @@ onUnmounted(() => {
 }
 
 .strategy-pill {
-  border: 1px solid #334155;
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.7);
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
   color: #cbd5e1;
-  padding: 6px 8px;
+  padding: 6px 10px;
   font-size: 12px;
   cursor: pointer;
   text-align: left;
+  transition: background-color 0.15s ease;
 }
 
 .strategy-pill:hover {
-  border-color: #475569;
+  background: rgba(30, 41, 59, 0.8);
 }
 
 .strategy-pill.active.constant {
@@ -6165,5 +6163,30 @@ onUnmounted(() => {
     width: auto !important;
     max-width: none !important;
   }
+}
+.text-input,
+.text-area {
+  border: 1px solid transparent;
+  background: rgba(0, 0, 0, 0.25);
+  color: #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.text-input:hover,
+.text-area:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.text-input:focus,
+.text-area:focus {
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(59, 130, 246, 0.5);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 </style>
