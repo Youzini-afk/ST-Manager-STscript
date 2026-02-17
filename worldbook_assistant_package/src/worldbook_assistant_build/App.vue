@@ -3646,6 +3646,13 @@ function getRoleBoundPresetForCurrentContext(): GlobalWorldbookPreset | null {
 async function autoApplyRoleBoundPreset(): Promise<void> {
   const rolePreset = getRoleBoundPresetForCurrentContext();
   if (!rolePreset) {
+    if (bindings.global.length) {
+      selectedGlobalPresetId.value = '';
+      await applyGlobalWorldbooks(
+        [],
+        `已按角色自动清除预设（${currentRoleContext.value?.name ?? '当前角色'}无绑定）`,
+      );
+    }
     return;
   }
   selectedGlobalPresetId.value = rolePreset.id;
