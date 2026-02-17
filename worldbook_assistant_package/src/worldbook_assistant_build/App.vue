@@ -105,7 +105,7 @@
                 <label class="field">
                   <span>世界书预设（切换即应用）</span>
                   <select v-model="selectedGlobalPresetId" class="text-input" @change="onGlobalPresetSelectionChanged">
-                    <option value="">请选择预设...</option>
+                    <option value="">默认预设（清空全局世界书）</option>
                     <option v-for="preset in globalWorldbookPresets" :key="preset.id" :value="preset.id">
                       {{ preset.name }}（{{ preset.worldbooks.length }}）
                     </option>
@@ -3726,7 +3726,11 @@ function onGlobalPresetSelectionChanged(): void {
     updatePersistedState(state => {
       state.last_global_preset_id = '';
     });
-    setStatus('已取消预设选择');
+    if (bindings.global.length) {
+      void applyGlobalWorldbooks([], '已切换到默认预设（清空全局世界书）');
+    } else {
+      setStatus('已切换到默认预设');
+    }
     return;
   }
   void applySelectedGlobalPreset();
