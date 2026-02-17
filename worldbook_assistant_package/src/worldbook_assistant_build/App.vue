@@ -1030,6 +1030,7 @@ const selectedExtraText = ref('');
 const globalAddSearchText = ref('');
 const globalFilterText = ref('');
 const roleBindSearchText = ref('');
+const roleOverrideBaseline = ref<{ presetId: string; worldbooks: string[] } | null>(null);
 
 const batchFindText = ref('');
 const batchReplaceText = ref('');
@@ -3646,14 +3647,37 @@ function getRoleBoundPresetForCurrentContext(): GlobalWorldbookPreset | null {
 async function autoApplyRoleBoundPreset(): Promise<void> {
   const rolePreset = getRoleBoundPresetForCurrentContext();
   if (!rolePreset) {
-    if (bindings.global.length) {
-      selectedGlobalPresetId.value = '';
-      await applyGlobalWorldbooks(
-        [],
-        `已按角色自动清除预设（${currentRoleContext.value?.name ?? '当前角色'}无绑定）`,
-      );
+    if (roleOverrideBaseline.value) {
+      const baseline = roleOverrideBaseline.value;
+      roleOverrideBaseline.value = null;
+      selectedGlobalPresetId.value = baseline.presetId;
+      if (baseline.presetId) {
+        const baselinePreset = globalWorldbookPresets.value.find(item => item.id === baseline.presetId);
+        if (baselinePreset) {
+          await applyPresetWorldbooks(baselinePreset, {
+            statusPrefix: `已恢复角色切换前的预设`,
+            silentWhenSame: true,
+          });
+        } else {
+          await applyGlobalWorldbooks(
+            baseline.worldbooks,
+            '已恢复角色切换前的全局世界书',
+          );
+        }
+      } else {
+        await applyGlobalWorldbooks(
+          baseline.worldbooks,
+          '已恢复角色切换前的全局世界书',
+        );
+      }
     }
     return;
+  }
+  if (!roleOverrideBaseline.value) {
+    roleOverrideBaseline.value = {
+      presetId: selectedGlobalPresetId.value,
+      worldbooks: getCurrentGlobalWorldbookSet(),
+    };
   }
   selectedGlobalPresetId.value = rolePreset.id;
   await applyPresetWorldbooks(rolePreset, {
