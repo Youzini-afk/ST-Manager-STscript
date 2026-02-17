@@ -1017,15 +1017,15 @@ const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }>
       '--wb-primary': '#d97706',
       '--wb-primary-light': '#b45309',
       '--wb-primary-hover': 'rgba(217, 119, 6, 0.1)',
-      '--wb-primary-soft': 'rgba(217, 119, 6, 0.08)',
+      '--wb-primary-soft': 'rgba(180, 83, 9, 0.1)',
       '--wb-primary-glow': 'rgba(217, 119, 6, 0.25)',
-      '--wb-input-bg': 'rgba(255, 255, 255, 0.5)',
-      '--wb-input-bg-hover': 'rgba(255, 255, 255, 0.7)',
+      '--wb-input-bg': '#f7f3ec',
+      '--wb-input-bg-hover': '#f2ece2',
       '--wb-input-bg-focus': '#ffffff',
       '--wb-border-subtle': 'rgba(74, 59, 50, 0.12)',
-      '--wb-border-main': 'rgba(74, 59, 50, 0.18)',
-      '--wb-shadow-main': '0 12px 28px rgba(74, 59, 50, 0.1)',
-      '--wb-scrollbar-thumb': 'rgba(74, 59, 50, 0.2)',
+      '--wb-border-main': 'rgba(74, 59, 50, 0.2)',
+      '--wb-shadow-main': '0 8px 24px rgba(74, 59, 50, 0.12)',
+      '--wb-scrollbar-thumb': 'rgba(74, 59, 50, 0.25)',
     },
   },
   snow: {
@@ -5961,8 +5961,9 @@ watch(currentTheme, () => {
 }
 
 .btn.danger {
-  background: #4c0519;
+  background: rgba(225, 29, 72, 0.12);
   border-color: #e11d48;
+  color: #e11d48;
 }
 
 .btn.mini {
@@ -6360,5 +6361,43 @@ watch(currentTheme, () => {
 
 .list-actions {
   padding: 0 8px;
+}
+
+/* ─────────────────────────────────────────────────
+   Override: Force theme colors on native form elements
+   This beats SillyTavern global dark CSS which sets
+   background/color on textarea, input, select, etc.
+   ───────────────────────────────────────────────── */
+.wb-assistant-root input,
+.wb-assistant-root textarea,
+.wb-assistant-root select,
+.wb-assistant-root option,
+.wb-assistant-root button {
+  color: var(--wb-text-main);
+}
+
+.wb-assistant-root input[type="text"],
+.wb-assistant-root input[type="number"],
+.wb-assistant-root textarea,
+.wb-assistant-root select {
+  background: var(--wb-input-bg);
+  border-color: transparent;
+}
+
+.wb-assistant-root input[type="text"]:hover,
+.wb-assistant-root input[type="number"]:hover,
+.wb-assistant-root textarea:hover,
+.wb-assistant-root select:hover {
+  background: var(--wb-input-bg-hover);
+}
+
+.wb-assistant-root input[type="text"]:focus,
+.wb-assistant-root input[type="number"]:focus,
+.wb-assistant-root textarea:focus,
+.wb-assistant-root select:focus {
+  background: var(--wb-input-bg-focus);
+  border-color: var(--wb-primary-glow);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--wb-primary-soft);
 }
 </style>
