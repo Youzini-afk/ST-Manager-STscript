@@ -557,6 +557,23 @@
 
           <footer class="wb-status">
             <span>{{ isBusy ? '加载中...' : statusMessage }}</span>
+            <div class="theme-picker">
+              <button class="btn mini" type="button" @click="themePickerOpen = !themePickerOpen">
+                🎨 {{ THEMES[currentTheme].name }} {{ themePickerOpen ? '▴' : '▾' }}
+              </button>
+              <div v-if="themePickerOpen" class="theme-picker-dropdown">
+                <button
+                  v-for="(theme, key) in THEMES"
+                  :key="key"
+                  class="theme-picker-item"
+                  :class="{ active: key === currentTheme }"
+                  type="button"
+                  @click="setTheme(key as ThemeKey)"
+                >
+                  {{ theme.name }}
+                </button>
+              </div>
+            </div>
             <span>
               当前条目: {{ draftEntries.length }} | 内容字符: {{ totalContentChars }} |
               {{ hasUnsavedChanges ? '存在未保存修改' : '已同步' }}
@@ -4134,6 +4151,12 @@ function toggleTheme(): void {
   setStatus(`已切换主题: ${THEMES[currentTheme.value].name}`);
 }
 
+function setTheme(key: ThemeKey): void {
+  currentTheme.value = key;
+  themePickerOpen.value = false;
+  setStatus(`已切换主题: ${THEMES[key].name}`);
+}
+
 function selectWorldbookFromPicker(name: string): void {
   if (!name) {
     return;
@@ -4151,13 +4174,14 @@ function bindFirstRoleCandidate(): void {
 }
 
 function onHostPointerDownForWorldbookPicker(event: PointerEvent): void {
-  if (!worldbookPickerOpen.value && !rolePickerOpen.value) {
+  if (!worldbookPickerOpen.value && !rolePickerOpen.value && !themePickerOpen.value) {
     return;
   }
   const target = event.target as Node | null;
   if (!target) {
     closeWorldbookPicker();
     closeRolePicker();
+    themePickerOpen.value = false;
     return;
   }
 
@@ -4173,6 +4197,10 @@ function onHostPointerDownForWorldbookPicker(event: PointerEvent): void {
     if (!roleRoot || !roleRoot.contains(target)) {
       closeRolePicker();
     }
+  }
+
+  if (themePickerOpen.value) {
+    themePickerOpen.value = false;
   }
 }
 
@@ -6373,31 +6401,73 @@ watch(currentTheme, () => {
 .wb-assistant-root select,
 .wb-assistant-root option,
 .wb-assistant-root button {
-  color: var(--wb-text-main);
+  color: var(--wb-text-main) !important;
 }
 
 .wb-assistant-root input[type="text"],
 .wb-assistant-root input[type="number"],
 .wb-assistant-root textarea,
 .wb-assistant-root select {
-  background: var(--wb-input-bg);
-  border-color: transparent;
+  background: var(--wb-input-bg) !important;
+  border-color: transparent !important;
 }
 
 .wb-assistant-root input[type="text"]:hover,
 .wb-assistant-root input[type="number"]:hover,
 .wb-assistant-root textarea:hover,
 .wb-assistant-root select:hover {
-  background: var(--wb-input-bg-hover);
+  background: var(--wb-input-bg-hover) !important;
 }
 
 .wb-assistant-root input[type="text"]:focus,
 .wb-assistant-root input[type="number"]:focus,
 .wb-assistant-root textarea:focus,
 .wb-assistant-root select:focus {
-  background: var(--wb-input-bg-focus);
-  border-color: var(--wb-primary-glow);
-  outline: none;
-  box-shadow: 0 0 0 3px var(--wb-primary-soft);
+  background: var(--wb-input-bg-focus) !important;
+  border-color: var(--wb-primary-glow) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px var(--wb-primary-soft) !important;
+}
+
+/* Theme picker dropdown */
+.theme-picker {
+  position: relative;
+  display: inline-block;
+}
+
+.theme-picker-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 10200;
+  border: 1px solid var(--wb-border-main);
+  border-radius: 8px;
+  background: var(--wb-bg-panel);
+  box-shadow: var(--wb-shadow-main);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+}
+
+.theme-picker-item {
+  width: 100%;
+  border: none !important;
+  border-radius: 6px;
+  background: transparent !important;
+  color: var(--wb-text-main) !important;
+  padding: 6px 10px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.theme-picker-item:hover {
+  background: var(--wb-primary-hover) !important;
+}
+
+.theme-picker-item.active {
+  background: var(--wb-primary-soft) !important;
+  color: var(--wb-primary-light) !important;
 }
 </style>
