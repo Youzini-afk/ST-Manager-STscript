@@ -3683,6 +3683,7 @@ async function autoApplyRoleBoundPreset(): Promise<void> {
     if (baseline) {
       updatePersistedState(state => {
         state.role_override_baseline = null;
+        state.last_global_preset_id = baseline.preset_id;
       });
       selectedGlobalPresetId.value = baseline.preset_id;
       if (baseline.preset_id) {
