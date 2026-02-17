@@ -380,6 +380,7 @@
                     </details>
                   </section>
                   <div
+                    v-show="!isMobile"
                     class="wb-resize-handle editor"
                     :class="{ dragging: paneResizeState?.key === 'editor' }"
                     @pointerdown="startPaneResize('editor', $event)"
@@ -1023,10 +1024,6 @@ const rolePickerSearchInputRef = ref<HTMLInputElement | null>(null);
 const globalWorldbookMode = ref(false);
 const selectedGlobalPresetId = ref('');
 const currentRoleContext = ref<PresetRoleBinding | null>(null);
-
-function goBackToList(): void {
-  selectedEntryUid.value = null;
-}
 const roleBindingSourceCandidates = ref<PresetRoleBinding[]>([]);
 const originalEntries = ref<WorldbookEntry[]>([]);
 const draftEntries = ref<WorldbookEntry[]>([]);
@@ -2795,6 +2792,10 @@ function selectEntry(uid: number): void {
   selectedEntryUid.value = uid;
 }
 
+function goBackToList(): void {
+  selectedEntryUid.value = null;
+}
+
 function createEntrySnapshotRecord(
   label: string,
   uid: number,
@@ -3163,7 +3164,11 @@ function removeSelectedEntry(): void {
   }
   pushEntrySnapshot('删除前快照', selectedEntry.value);
   draftEntries.value.splice(selectedEntryIndex.value, 1);
-  ensureSelectedEntryExists();
+  if (isMobile.value) {
+    selectedEntryUid.value = null;
+  } else {
+    ensureSelectedEntryExists();
+  }
   setStatus('已删除条目');
 }
 
