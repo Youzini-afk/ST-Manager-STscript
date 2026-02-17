@@ -4702,19 +4702,17 @@ onUnmounted(() => {
 }
 
 .global-preset-panel {
-  border: 1px solid #334155;
   border-radius: 8px;
-  background: rgba(2, 6, 23, 0.44);
-  padding: 8px;
+  background: rgba(2, 6, 23, 0.3);
+  padding: 10px;
   display: grid;
   gap: 8px;
 }
 
 .preset-role-panel {
-  border: 1px solid #334155;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.5);
-  padding: 8px;
+  background: rgba(15, 23, 42, 0.3);
+  padding: 10px;
   display: grid;
   gap: 6px;
 }
@@ -4884,19 +4882,17 @@ onUnmounted(() => {
 }
 
 .global-mode-column {
-  border: 1px solid #334155;
   border-radius: 8px;
-  padding: 8px;
-  background: rgba(2, 6, 23, 0.42);
+  padding: 10px;
+  background: rgba(2, 6, 23, 0.3);
   display: grid;
   gap: 6px;
   min-height: 168px;
 }
 
 .global-mode-list {
-  border: 1px solid #334155;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.4);
   max-height: 176px;
   min-height: 88px;
   overflow: auto;
@@ -4990,11 +4986,13 @@ onUnmounted(() => {
 .list-search {
   display: grid;
   gap: 6px;
+  padding: 0 8px;
 }
 
 .list-summary {
   color: #94a3b8;
   font-size: 12px;
+  padding: 0 8px;
 }
 
 .list-scroll {
@@ -5115,12 +5113,12 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border: 1px solid #334155;
+  border: none;
   border-radius: 999px;
-  padding: 1px 8px;
+  padding: 2px 8px;
   color: #cbd5e1;
   font-size: 11px;
-  background: rgba(15, 23, 42, 0.55);
+  background: rgba(30, 41, 59, 0.5);
 }
 
 .entry-chip.uid {
@@ -5135,25 +5133,21 @@ onUnmounted(() => {
 }
 
 .entry-chip.status[data-status='constant'] {
-  border-color: rgba(59, 130, 246, 0.65);
   color: #93c5fd;
   background: rgba(59, 130, 246, 0.16);
 }
 
 .entry-chip.status[data-status='vector'] {
-  border-color: rgba(168, 85, 247, 0.65);
   color: #d8b4fe;
   background: rgba(168, 85, 247, 0.16);
 }
 
 .entry-chip.status[data-status='normal'] {
-  border-color: rgba(34, 197, 94, 0.65);
   color: #86efac;
   background: rgba(34, 197, 94, 0.16);
 }
 
 .entry-chip.status[data-status='disabled'] {
-  border-color: rgba(107, 114, 128, 0.7);
   color: #cbd5e1;
   background: rgba(100, 116, 139, 0.15);
 }
@@ -5246,11 +5240,11 @@ onUnmounted(() => {
 
 .editor-badge {
   font-size: 10px;
-  border: 1px solid #334155;
+  border: none;
   border-radius: 999px;
   padding: 2px 8px;
   color: #94a3b8;
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(30, 41, 59, 0.5);
   white-space: nowrap;
 }
 
@@ -5259,33 +5253,33 @@ onUnmounted(() => {
 }
 
 .editor-badge.on {
-  border-color: rgba(34, 197, 94, 0.65);
   color: #86efac;
+  background: rgba(34, 197, 94, 0.12);
 }
 
 .editor-badge.off {
-  border-color: rgba(107, 114, 128, 0.75);
   color: #cbd5e1;
+  background: rgba(100, 116, 139, 0.15);
 }
 
 .editor-badge.strategy[data-status='constant'] {
-  border-color: rgba(59, 130, 246, 0.65);
   color: #93c5fd;
+  background: rgba(59, 130, 246, 0.12);
 }
 
 .editor-badge.strategy[data-status='vector'] {
-  border-color: rgba(168, 85, 247, 0.65);
   color: #d8b4fe;
+  background: rgba(168, 85, 247, 0.12);
 }
 
 .editor-badge.strategy[data-status='normal'] {
-  border-color: rgba(34, 197, 94, 0.65);
   color: #86efac;
+  background: rgba(34, 197, 94, 0.12);
 }
 
 .editor-badge.strategy[data-status='disabled'] {
-  border-color: rgba(107, 114, 128, 0.75);
   color: #cbd5e1;
+  background: rgba(100, 116, 139, 0.12);
 }
 
 .editor-keyword-grid .text-area.compact {
@@ -5316,10 +5310,10 @@ onUnmounted(() => {
 }
 
 .editor-advanced {
-  border: 1px solid #334155;
+  border: none;
   border-radius: 8px;
-  padding: 7px;
-  background: rgba(15, 23, 42, 0.4);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .editor-advanced > summary {
@@ -5377,19 +5371,16 @@ onUnmounted(() => {
 }
 
 .strategy-pill.active.constant {
-  border-color: rgba(59, 130, 246, 0.8);
   background: rgba(59, 130, 246, 0.16);
   color: #93c5fd;
 }
 
 .strategy-pill.active.vector {
-  border-color: rgba(168, 85, 247, 0.8);
   background: rgba(168, 85, 247, 0.16);
   color: #d8b4fe;
 }
 
 .strategy-pill.active.selective {
-  border-color: rgba(34, 197, 94, 0.8);
   background: rgba(34, 197, 94, 0.16);
   color: #86efac;
 }
@@ -5436,11 +5427,27 @@ onUnmounted(() => {
 .toolbar-select {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #334155;
-  border-radius: 7px;
-  padding: 6px 8px;
-  color: #f8fafc;
-  background: #0f172a;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #e2e8f0;
+  background: rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease;
+}
+
+.text-input:hover,
+.text-area:hover,
+.toolbar-select:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.text-input:focus,
+.text-area:focus,
+.toolbar-select:focus {
+  background: rgba(0, 0, 0, 0.45);
+  border-color: rgba(59, 130, 246, 0.5);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 .text-area {
@@ -5469,14 +5476,13 @@ onUnmounted(() => {
 }
 
 .tool-card {
-  border: 1px solid #334155;
   border-radius: 10px;
-  padding: 8px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   min-height: 170px;
-  background: rgba(15, 23, 42, 0.45);
+  background: rgba(15, 23, 42, 0.35);
 }
 
 .tool-card h4 {
@@ -5616,13 +5622,13 @@ onUnmounted(() => {
 }
 
 .tool-list-item {
-  border: 1px solid #334155;
   border-radius: 8px;
-  padding: 6px;
+  padding: 8px;
   display: flex;
   justify-content: space-between;
   gap: 8px;
   align-items: center;
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .item-main {
@@ -5650,11 +5656,11 @@ onUnmounted(() => {
 }
 
 .activation-item {
-  border: 1px solid #334155;
   border-radius: 8px;
-  padding: 6px;
+  padding: 8px;
   display: grid;
   gap: 3px;
+  background: rgba(0, 0, 0, 0.15);
 }
 
 .activation-main,
@@ -5732,10 +5738,9 @@ onUnmounted(() => {
 }
 
 .wb-status {
-  border: 1px solid #334155;
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.52);
-  padding: 8px;
+  background: rgba(30, 41, 59, 0.3);
+  padding: 10px 12px;
   display: flex;
   justify-content: space-between;
   gap: 8px;
@@ -6088,8 +6093,8 @@ onUnmounted(() => {
   gap: 8px;
   padding: 10px 12px;
   margin: 0 0 8px 0;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid #334155;
+  background: rgba(30, 41, 59, 0.6);
+  border: none;
   border-radius: 6px;
   color: #93c5fd;
   font-weight: 600;
@@ -6098,7 +6103,6 @@ onUnmounted(() => {
 
 .editor-back-btn:hover {
   background: rgba(30, 41, 59, 1);
-  border-color: #3b82f6;
 }
 
 @media (max-width: 768px) {
@@ -6164,29 +6168,8 @@ onUnmounted(() => {
     max-width: none !important;
   }
 }
-.text-input,
-.text-area {
-  border: 1px solid transparent;
-  background: rgba(0, 0, 0, 0.25);
-  color: #e2e8f0;
-  border-radius: 6px;
-  padding: 8px 10px;
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
-}
 
-.text-input:hover,
-.text-area:hover {
-  background: rgba(0, 0, 0, 0.35);
-}
-
-.text-input:focus,
-.text-area:focus {
-  background: rgba(0, 0, 0, 0.45);
-  border-color: rgba(59, 130, 246, 0.5);
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+.list-actions {
+  padding: 0 8px;
 }
 </style>
