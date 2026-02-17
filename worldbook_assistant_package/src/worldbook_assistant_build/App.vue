@@ -952,6 +952,7 @@ interface PersistedState {
   entry_history: Record<string, Record<string, EntrySnapshot[]>>;
   global_presets: GlobalWorldbookPreset[];
   last_global_preset_id: string;
+  role_override_baseline: { preset_id: string; worldbooks: string[] } | null;
 }
 
 interface ActivationLog {
@@ -1030,7 +1031,6 @@ const selectedExtraText = ref('');
 const globalAddSearchText = ref('');
 const globalFilterText = ref('');
 const roleBindSearchText = ref('');
-const roleOverrideBaseline = ref<{ presetId: string; worldbooks: string[] } | null>(null);
 
 const batchFindText = ref('');
 const batchReplaceText = ref('');
@@ -2057,6 +2057,7 @@ function createDefaultPersistedState(): PersistedState {
     entry_history: {},
     global_presets: [],
     last_global_preset_id: '',
+    role_override_baseline: null,
   };
 }
 
@@ -2147,12 +2148,25 @@ function normalizePersistedState(input: unknown): PersistedState {
     .filter((item): item is GlobalWorldbookPreset => item !== null)
     .slice(0, GLOBAL_PRESET_LIMIT);
 
+  const rawBaseline = asRecord(root.role_override_baseline);
+  let roleOverrideBaseline: PersistedState['role_override_baseline'] = null;
+  if (rawBaseline) {
+    const baselineWorldbooks = Array.isArray(rawBaseline.worldbooks)
+      ? rawBaseline.worldbooks.map(name => toStringSafe(name).trim()).filter(Boolean)
+      : [];
+    roleOverrideBaseline = {
+      preset_id: toStringSafe(rawBaseline.preset_id),
+      worldbooks: [...new Set(baselineWorldbooks)],
+    };
+  }
+
   return {
     last_worldbook: toStringSafe(root.last_worldbook),
     history,
     entry_history: entryHistory,
     global_presets: globalPresets,
     last_global_preset_id: toStringSafe(root.last_global_preset_id),
+    role_override_baseline: roleOverrideBaseline,
   };
 }
 
@@ -3647,15 +3661,17 @@ function getRoleBoundPresetForCurrentContext(): GlobalWorldbookPreset | null {
 async function autoApplyRoleBoundPreset(): Promise<void> {
   const rolePreset = getRoleBoundPresetForCurrentContext();
   if (!rolePreset) {
-    if (roleOverrideBaseline.value) {
-      const baseline = roleOverrideBaseline.value;
-      roleOverrideBaseline.value = null;
-      selectedGlobalPresetId.value = baseline.presetId;
-      if (baseline.presetId) {
-        const baselinePreset = globalWorldbookPresets.value.find(item => item.id === baseline.presetId);
+    const baseline = persistedState.value.role_override_baseline;
+    if (baseline) {
+      updatePersistedState(state => {
+        state.role_override_baseline = null;
+      });
+      selectedGlobalPresetId.value = baseline.preset_id;
+      if (baseline.preset_id) {
+        const baselinePreset = globalWorldbookPresets.value.find(item => item.id === baseline.preset_id);
         if (baselinePreset) {
           await applyPresetWorldbooks(baselinePreset, {
-            statusPrefix: `已恢复角色切换前的预设`,
+            statusPrefix: '已恢复角色切换前的预设',
             silentWhenSame: true,
           });
         } else {
@@ -3673,11 +3689,13 @@ async function autoApplyRoleBoundPreset(): Promise<void> {
     }
     return;
   }
-  if (!roleOverrideBaseline.value) {
-    roleOverrideBaseline.value = {
-      presetId: selectedGlobalPresetId.value,
-      worldbooks: getCurrentGlobalWorldbookSet(),
-    };
+  if (!persistedState.value.role_override_baseline) {
+    updatePersistedState(state => {
+      state.role_override_baseline = {
+        preset_id: selectedGlobalPresetId.value,
+        worldbooks: getCurrentGlobalWorldbookSet(),
+      };
+    });
   }
   selectedGlobalPresetId.value = rolePreset.id;
   await applyPresetWorldbooks(rolePreset, {
