@@ -265,7 +265,7 @@
           </section>
 
           <section ref="mainLayoutRef" class="wb-main-layout" :style="mainLayoutStyle">
-            <aside class="wb-entry-list">
+            <aside v-show="!showMobileEditor" class="wb-entry-list">
               <div class="list-search">
                 <input v-model="searchText" type="text" class="text-input" placeholder="搜索名称 / 内容 / 关键词" />
                 <label class="checkbox-inline">
@@ -320,16 +320,20 @@
               </div>
             </aside>
             <div
+              v-show="!isMobile"
               class="wb-resize-handle main"
               :class="{ dragging: paneResizeState?.key === 'main' }"
               @pointerdown="startPaneResize('main', $event)"
             ></div>
 
-            <main class="wb-editor">
+            <main v-show="!isMobile || showMobileEditor" class="wb-editor">
               <template v-if="selectedEntry">
                 <div ref="editorShellRef" class="wb-editor-shell" :style="editorShellStyle">
                   <section class="editor-center">
                     <header class="editor-head">
+                      <div v-if="isMobile" class="editor-back-btn" @click="goBackToList">
+                        ← 返回
+                      </div>
                       <label class="field editor-comment">
                         <span>备注 (COMMENT)</span>
                         <input v-model="selectedEntry.name" type="text" class="text-input" />
@@ -1019,6 +1023,10 @@ const rolePickerSearchInputRef = ref<HTMLInputElement | null>(null);
 const globalWorldbookMode = ref(false);
 const selectedGlobalPresetId = ref('');
 const currentRoleContext = ref<PresetRoleBinding | null>(null);
+
+function goBackToList(): void {
+  selectedEntryUid.value = null;
+}
 const roleBindingSourceCandidates = ref<PresetRoleBinding[]>([]);
 const originalEntries = ref<WorldbookEntry[]>([]);
 const draftEntries = ref<WorldbookEntry[]>([]);
@@ -1073,6 +1081,8 @@ const mainPaneWidth = ref(320);
 const editorSideWidth = ref(360);
 const paneResizeState = ref<PaneResizeState | null>(null);
 const hostResizeWindow = ref<Window | null>(null);
+const isMobile = computed(() => viewportWidth.value <= 768);
+const showMobileEditor = computed(() => isMobile.value && selectedEntryUid.value !== null);
 
 const bindings = reactive({
   global: [] as string[],
@@ -1130,6 +1140,13 @@ const hasUnsavedChanges = computed(() => JSON.stringify(draftEntries.value) !== 
 const isCompactLayout = computed(() => viewportWidth.value <= 1100);
 
 const mainLayoutStyle = computed<Record<string, string> | undefined>(() => {
+  if (isMobile.value) {
+    return {
+      display: 'block',
+      height: 'auto',
+      overflow: 'visible',
+    };
+  }
   if (isCompactLayout.value) {
     return undefined;
   }
@@ -6054,10 +6071,94 @@ onUnmounted(() => {
     flex-direction: column;
   }
 
+
   .wb-floating-window {
     width: calc(100vw - 16px) !important;
     left: 8px !important;
     right: 8px;
+  }
+}
+
+.editor-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin: 0 0 8px 0;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid #334155;
+  border-radius: 6px;
+  color: #93c5fd;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.editor-back-btn:hover {
+  background: rgba(30, 41, 59, 1);
+  border-color: #3b82f6;
+}
+
+@media (max-width: 768px) {
+  .wb-assistant-root {
+    padding: 6px;
+    gap: 8px;
+  }
+
+  .wb-header,
+  .wb-bindings,
+  .global-mode-panel,
+  .wb-toolbar {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .toolbar-label {
+    min-width: 100%;
+  }
+
+  .toolbar-select {
+    width: 100%;
+  }
+
+  .worldbook-picker-trigger {
+    white-space: normal;
+  }
+
+  .wb-main-layout {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .wb-entry-list,
+  .wb-editor,
+  .wb-editor-shell,
+  .editor-side {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .wb-entry-list {
+    max-height: 80vh !important;
+    overflow-y: auto;
+  }
+
+  .wb-editor-shell {
+    display: block !important;
+  }
+
+  .list-scroll {
+    max-height: 60vh;
+  }
+
+  .wb-floating-window {
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: none !important;
   }
 }
 </style>
