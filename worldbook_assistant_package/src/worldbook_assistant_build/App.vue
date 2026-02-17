@@ -62,14 +62,6 @@
               <button
                 class="btn history-btn utility-btn"
                 type="button"
-                :class="{ active: floatingPanels.clipboard.visible }"
-                @click="toggleFloatingPanel('clipboard')"
-              >
-                📋 剪贴板
-              </button>
-              <button
-                class="btn history-btn utility-btn"
-                type="button"
                 :class="{ active: floatingPanels.activation.visible }"
                 @click="toggleFloatingPanel('activation')"
               >
@@ -252,7 +244,6 @@
                       <div class="field-actions">
                         <button class="btn" type="button" @click="applyExtraJson">应用 extra</button>
                         <button class="btn" type="button" @click="clearExtra">清空 extra</button>
-                        <button class="btn" type="button" @click="copySelectedEntryToClipboard">复制到剪贴板</button>
                       </div>
                     </details>
                   </section>
@@ -591,9 +582,36 @@
                   type="button"
                   :disabled="!draftEntries.length"
                   @pointerdown.stop
+                  @click="findFirstMatch"
+                >
+                  查找
+                </button>
+                <button
+                  class="btn mini"
+                  type="button"
+                  :disabled="!draftEntries.length"
+                  @pointerdown.stop
+                  @click="findPreviousMatch"
+                >
+                  上一个
+                </button>
+                <button
+                  class="btn mini"
+                  type="button"
+                  :disabled="!draftEntries.length"
+                  @pointerdown.stop
+                  @click="findNextMatch"
+                >
+                  下一个
+                </button>
+                <button
+                  class="btn mini"
+                  type="button"
+                  :disabled="!draftEntries.length"
+                  @pointerdown.stop
                   @click="applyBatchReplace"
                 >
-                  执行
+                  替换全部
                 </button>
                 <button class="btn mini danger" type="button" @pointerdown.stop @click="closeFloatingPanel('find')">
                   关闭
@@ -604,12 +622,27 @@
               <div class="tool-line stacked">
                 <input v-model="batchFindText" type="text" class="text-input" placeholder="查找文本 / 正则" />
                 <input v-model="batchReplaceText" type="text" class="text-input" placeholder="替换为" />
+                <div class="find-scope-line">
+                  <label class="checkbox-inline">
+                    <input v-model="batchSearchScope" type="radio" value="all" />
+                    <span>全部条目</span>
+                  </label>
+                  <label class="checkbox-inline">
+                    <input v-model="batchSearchScope" type="radio" value="current" :disabled="!selectedEntry" />
+                    <span>当前条目</span>
+                  </label>
+                  <span class="find-summary-text">{{ findHitSummaryText }}</span>
+                </div>
                 <input
                   v-model="batchExcludeText"
                   type="text"
                   class="text-input"
                   placeholder="排除项：条目名关键词 / #UID（逗号或换行）"
                 />
+                <div v-if="activeFindHit" class="find-active-hit">
+                  <strong>#{{ activeFindHit.entryUid }} {{ activeFindHit.entryName || `条目 ${activeFindHit.entryUid}` }}</strong>
+                  <span>{{ getFindFieldLabel(activeFindHit.field) }} · {{ activeFindHit.preview }}</span>
+                </div>
                 <div class="batch-exclude-note">示例: `#12, name:世界观, 吸血鬼`（命中名称或关键词即排除）</div>
                 <div v-if="batchExcludeTokensPreview.length" class="batch-exclude-chips">
                   <span v-for="token in batchExcludeTokensPreview" :key="token" class="exclude-chip">{{ token }}</span>
@@ -652,58 +685,6 @@
                   </button>
                 </div>
               </details>
-            </div>
-          </div>
-
-          <div
-            v-if="floatingPanels.clipboard.visible"
-            class="wb-floating-window clipboard-window"
-            :style="getFloatingPanelStyle('clipboard')"
-            @pointerdown="bringFloatingToFront('clipboard')"
-          >
-            <div class="wb-floating-header" @pointerdown="startFloatingDrag('clipboard', $event)">
-              <strong>📋 剪贴板（脚本变量持久化）</strong>
-              <div class="wb-floating-header-actions">
-                <button
-                  class="btn mini danger"
-                  type="button"
-                  :disabled="!clipboardItems.length"
-                  @pointerdown.stop
-                  @click="clearClipboard"
-                >
-                  清空
-                </button>
-                <button
-                  class="btn mini danger"
-                  type="button"
-                  @pointerdown.stop
-                  @click="closeFloatingPanel('clipboard')"
-                >
-                  关闭
-                </button>
-              </div>
-            </div>
-            <div class="wb-floating-body">
-              <div class="tool-scroll">
-                <div v-for="item in clipboardItems" :key="item.id" class="tool-list-item">
-                  <div class="item-main">
-                    <strong>{{ item.name || '未命名条目' }}</strong>
-                    <span>{{ formatDateTime(item.copied_at) }}</span>
-                  </div>
-                  <div class="item-actions">
-                    <button
-                      class="btn mini"
-                      type="button"
-                      :disabled="!selectedWorldbookName"
-                      @click="pasteClipboardItem(item.id)"
-                    >
-                      粘贴
-                    </button>
-                    <button class="btn mini danger" type="button" @click="deleteClipboardItem(item.id)">删除</button>
-                  </div>
-                </div>
-                <div v-if="!clipboardItems.length" class="empty-note">暂无剪贴板条目</div>
-              </div>
             </div>
           </div>
 
@@ -763,8 +744,10 @@ type SecondaryLogic = WorldbookEntry['strategy']['keys_secondary']['logic'];
 type PositionType = WorldbookEntry['position']['type'];
 type RoleType = WorldbookEntry['position']['role'];
 type EntryVisualStatus = 'constant' | 'vector' | 'normal' | 'disabled';
-type FloatingPanelKey = 'find' | 'clipboard' | 'activation';
+type FloatingPanelKey = 'find' | 'activation';
 type PaneResizeKey = 'main' | 'editor';
+type BatchSearchScope = 'all' | 'current';
+type FindFieldKey = 'name' | 'content' | 'keys';
 
 interface FloatingPanelState {
   visible: boolean;
@@ -779,13 +762,6 @@ interface PaneResizeState {
   pointerId: number;
   doc: Document;
   win: Window;
-}
-
-interface ClipboardItem {
-  id: string;
-  copied_at: number;
-  name: string;
-  entry: WorldbookEntry;
 }
 
 interface WorldbookSnapshot {
@@ -823,7 +799,6 @@ interface WorldbookVersionView {
 
 interface PersistedState {
   last_worldbook: string;
-  clipboard: ClipboardItem[];
   history: Record<string, WorldbookSnapshot[]>;
   entry_history: Record<string, Record<string, EntrySnapshot[]>>;
 }
@@ -846,11 +821,20 @@ interface EventSubscription {
   stop: () => void;
 }
 
+interface FindHit {
+  entryUid: number;
+  entryName: string;
+  field: FindFieldKey;
+  start: number;
+  end: number;
+  matchedText: string;
+  preview: string;
+}
+
 const STORAGE_KEY = 'worldbook_assistant_state_v1';
 const DIRTY_STATE_KEY = '__WB_ASSISTANT_HAS_UNSAVED_CHANGES__';
 const HISTORY_LIMIT = 12;
 const ENTRY_HISTORY_LIMIT = 7;
-const CLIPBOARD_LIMIT = 40;
 const ACTIVATION_LOG_LIMIT = 120;
 const RESIZE_HANDLE_SIZE = 10;
 const MAIN_PANE_MIN = 220;
@@ -891,6 +875,9 @@ const batchUseRegex = ref(false);
 const batchInName = ref(true);
 const batchInContent = ref(true);
 const batchInKeys = ref(false);
+const batchSearchScope = ref<BatchSearchScope>('all');
+const findHits = ref<FindHit[]>([]);
+const findHitIndex = ref(-1);
 
 const statusMessage = ref('就绪');
 const isBusy = ref(false);
@@ -904,7 +891,6 @@ const worldbookHistoryRightId = ref('');
 const floatingZCounter = ref(10005);
 const floatingPanels = reactive<Record<FloatingPanelKey, FloatingPanelState>>({
   find: { visible: false, x: 420, y: 170, z: 10006, width: 500 },
-  clipboard: { visible: false, x: 700, y: 190, z: 10007, width: 430 },
   activation: { visible: false, x: 760, y: 230, z: 10008, width: 480 },
 });
 const activeFloatingDrag = ref<{
@@ -915,7 +901,7 @@ const activeFloatingDrag = ref<{
   doc: Document;
   win: Window;
 } | null>(null);
-const floatingPanelKeys: FloatingPanelKey[] = ['find', 'clipboard', 'activation'];
+const floatingPanelKeys: FloatingPanelKey[] = ['find', 'activation'];
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1440);
 const mainLayoutRef = ref<HTMLElement | null>(null);
 const editorShellRef = ref<HTMLElement | null>(null);
@@ -1032,8 +1018,6 @@ const isGlobalBound = computed(() => {
   return bindings.global.includes(selectedWorldbookName.value);
 });
 
-const clipboardItems = computed(() => persistedState.value.clipboard);
-
 const snapshotsForCurrent = computed(() => {
   if (!selectedWorldbookName.value) {
     return [];
@@ -1136,6 +1120,26 @@ const canRestoreWorldbookFromLeft = computed(() => {
 });
 
 const batchExcludeTokensPreview = computed(() => parseBatchExcludeTokens(batchExcludeText.value));
+
+const activeFindHit = computed(() => {
+  if (findHitIndex.value < 0 || findHitIndex.value >= findHits.value.length) {
+    return null;
+  }
+  return findHits.value[findHitIndex.value] ?? null;
+});
+
+const findHitSummaryText = computed(() => {
+  if (!batchFindText.value.trim()) {
+    return '输入查找文本后可定位';
+  }
+  if (!findHits.value.length) {
+    return '暂无匹配';
+  }
+  if (!activeFindHit.value) {
+    return `匹配 0 / ${findHits.value.length}`;
+  }
+  return `匹配 ${findHitIndex.value + 1} / ${findHits.value.length}`;
+});
 
 const entryHistoryDiff = computed(() => {
   return buildDiffHtml(
@@ -1270,6 +1274,23 @@ watch(
   () => selectedEntryUid.value,
   () => {
     syncExtraTextWithSelection();
+  },
+);
+
+watch(
+  [
+    batchFindText,
+    batchReplaceText,
+    batchExcludeText,
+    batchUseRegex,
+    batchInName,
+    batchInContent,
+    batchInKeys,
+    batchSearchScope,
+    selectedEntryUid,
+  ],
+  () => {
+    resetFindState();
   },
 );
 
@@ -1798,7 +1819,6 @@ function getNextUid(entries: WorldbookEntry[]): number {
 function createDefaultPersistedState(): PersistedState {
   return {
     last_worldbook: '',
-    clipboard: [],
     history: {},
     entry_history: {},
   };
@@ -1870,28 +1890,10 @@ function normalizePersistedState(input: unknown): PersistedState {
     }
   }
 
-  const clipboardRaw = Array.isArray(root.clipboard) ? root.clipboard : [];
-  const clipboard = clipboardRaw
-    .map(item => {
-      const record = asRecord(item);
-      if (!record) {
-        return null;
-      }
-      return {
-        id: toStringSafe(record.id, createId('clip')),
-        copied_at: toNumberSafe(record.copied_at, Date.now()),
-        name: toStringSafe(record.name, '未命名条目'),
-        entry: normalizeEntry(record.entry, 0),
-      } satisfies ClipboardItem;
-    })
-    .filter((item): item is ClipboardItem => item !== null)
-    .slice(0, CLIPBOARD_LIMIT);
-
   return {
     last_worldbook: toStringSafe(root.last_worldbook),
     history,
     entry_history: entryHistory,
-    clipboard,
   };
 }
 
@@ -2149,6 +2151,225 @@ function shouldExcludeEntryForBatch(entry: WorldbookEntry, tokens: string[]): bo
     }
   }
   return false;
+}
+
+function getFindFieldLabel(field: FindFieldKey): string {
+  if (field === 'name') {
+    return '名称';
+  }
+  if (field === 'content') {
+    return '内容';
+  }
+  return '关键词';
+}
+
+function resolveBatchRegex(findText: string): RegExp | null {
+  if (!batchUseRegex.value) {
+    return null;
+  }
+  try {
+    return new RegExp(findText, 'g');
+  } catch (error) {
+    toastr.error(`正则表达式无效: ${error instanceof Error ? error.message : String(error)}`);
+    return null;
+  }
+}
+
+function getBatchTargetEntries(): WorldbookEntry[] {
+  if (batchSearchScope.value === 'current') {
+    return selectedEntry.value ? [selectedEntry.value] : [];
+  }
+  return draftEntries.value;
+}
+
+function getEnabledFindFields(): FindFieldKey[] {
+  const fields: FindFieldKey[] = [];
+  if (batchInName.value) {
+    fields.push('name');
+  }
+  if (batchInContent.value) {
+    fields.push('content');
+  }
+  if (batchInKeys.value) {
+    fields.push('keys');
+  }
+  return fields;
+}
+
+function getEntryFieldText(entry: WorldbookEntry, field: FindFieldKey): string {
+  if (field === 'name') {
+    return entry.name;
+  }
+  if (field === 'content') {
+    return entry.content;
+  }
+  return entry.strategy.keys.map(key => stringifyKeyword(key)).join(', ');
+}
+
+function collectMatchIndexes(text: string, findText: string, regex: RegExp | null): Array<{ start: number; end: number; matchedText: string }> {
+  const hits: Array<{ start: number; end: number; matchedText: string }> = [];
+  if (!text || !findText) {
+    return hits;
+  }
+
+  if (!regex) {
+    let cursor = 0;
+    while (cursor <= text.length) {
+      const start = text.indexOf(findText, cursor);
+      if (start < 0) {
+        break;
+      }
+      const end = start + findText.length;
+      hits.push({
+        start,
+        end,
+        matchedText: text.slice(start, end),
+      });
+      cursor = Math.max(end, start + 1);
+    }
+    return hits;
+  }
+
+  const runtime = new RegExp(regex.source, regex.flags.includes('g') ? regex.flags : `${regex.flags}g`);
+  let result: RegExpExecArray | null = null;
+  while ((result = runtime.exec(text)) !== null) {
+    const matched = result[0] ?? '';
+    if (!matched) {
+      runtime.lastIndex += 1;
+      continue;
+    }
+    const start = result.index;
+    const end = start + matched.length;
+    hits.push({
+      start,
+      end,
+      matchedText: matched,
+    });
+  }
+  return hits;
+}
+
+function buildFindPreview(text: string, start: number, end: number): string {
+  const left = Math.max(0, start - 18);
+  const right = Math.min(text.length, end + 22);
+  const prefix = left > 0 ? '...' : '';
+  const suffix = right < text.length ? '...' : '';
+  return `${prefix}${text.slice(left, right).replace(/\s+/g, ' ')}${suffix}`;
+}
+
+function collectFindHits(findText: string, regex: RegExp | null, excludeTokens: string[]): FindHit[] {
+  const fields = getEnabledFindFields();
+  if (!fields.length) {
+    return [];
+  }
+  const entries = getBatchTargetEntries();
+  const hits: FindHit[] = [];
+
+  for (const entry of entries) {
+    if (shouldExcludeEntryForBatch(entry, excludeTokens)) {
+      continue;
+    }
+    for (const field of fields) {
+      const text = getEntryFieldText(entry, field);
+      const indexes = collectMatchIndexes(text, findText, regex);
+      for (const match of indexes) {
+        hits.push({
+          entryUid: entry.uid,
+          entryName: entry.name,
+          field,
+          start: match.start,
+          end: match.end,
+          matchedText: match.matchedText,
+          preview: buildFindPreview(text, match.start, match.end),
+        });
+      }
+    }
+  }
+
+  return hits;
+}
+
+function isSameFindHit(left: FindHit, right: FindHit): boolean {
+  return (
+    left.entryUid === right.entryUid &&
+    left.field === right.field &&
+    left.start === right.start &&
+    left.end === right.end &&
+    left.matchedText === right.matchedText
+  );
+}
+
+function resetFindState(): void {
+  findHits.value = [];
+  findHitIndex.value = -1;
+}
+
+function moveToFindHit(hit: FindHit, index: number, total: number): void {
+  findHitIndex.value = index;
+  selectedEntryUid.value = hit.entryUid;
+  const entryLabel = hit.entryName || `条目 ${hit.entryUid}`;
+  setStatus(`查找 ${index + 1}/${total}: ${entryLabel} · ${getFindFieldLabel(hit.field)} · ${hit.preview}`);
+}
+
+function runFind(step: -1 | 0 | 1): void {
+  const findText = batchFindText.value;
+  if (!findText) {
+    toastr.warning('请先输入查找文本');
+    return;
+  }
+
+  if (!getEnabledFindFields().length) {
+    toastr.warning('请至少勾选一个查找字段');
+    return;
+  }
+
+  if (batchSearchScope.value === 'current' && !selectedEntry.value) {
+    toastr.warning('当前条目模式下请先选择一个条目');
+    return;
+  }
+
+  const excludeTokens = parseBatchExcludeTokens(batchExcludeText.value);
+  const regex = resolveBatchRegex(findText);
+  if (batchUseRegex.value && !regex) {
+    return;
+  }
+
+  const hits = collectFindHits(findText, regex, excludeTokens);
+  findHits.value = hits;
+
+  if (!hits.length) {
+    findHitIndex.value = -1;
+    setStatus('查找完成：未找到匹配');
+    toastr.info('未找到匹配项');
+    return;
+  }
+
+  if (step === 0) {
+    moveToFindHit(hits[0], 0, hits.length);
+    return;
+  }
+
+  const prevHit = activeFindHit.value;
+  const currentIndex = prevHit ? hits.findIndex(item => isSameFindHit(item, prevHit)) : findHitIndex.value;
+  let nextIndex: number;
+  if (currentIndex < 0) {
+    nextIndex = step > 0 ? 0 : hits.length - 1;
+  } else {
+    nextIndex = (currentIndex + step + hits.length) % hits.length;
+  }
+  moveToFindHit(hits[nextIndex], nextIndex, hits.length);
+}
+
+function findFirstMatch(): void {
+  runFind(0);
+}
+
+function findNextMatch(): void {
+  runFind(1);
+}
+
+function findPreviousMatch(): void {
+  runFind(-1);
 }
 
 function ensureSelectedEntryExists(): void {
@@ -2468,57 +2689,6 @@ function clearCurrentEntrySnapshots(): void {
   });
 }
 
-function copySelectedEntryToClipboard(): void {
-  if (!selectedEntry.value) {
-    return;
-  }
-  const item: ClipboardItem = {
-    id: createId('clip'),
-    copied_at: Date.now(),
-    name: selectedEntry.value.name,
-    entry: normalizeEntry(klona(selectedEntry.value), selectedEntry.value.uid),
-  };
-  updatePersistedState(state => {
-    state.clipboard.unshift(item);
-    if (state.clipboard.length > CLIPBOARD_LIMIT) {
-      state.clipboard.length = CLIPBOARD_LIMIT;
-    }
-  });
-  toastr.success('已复制到剪贴板');
-}
-
-function pasteClipboardItem(itemId: string): void {
-  const item = clipboardItems.value.find(entry => entry.id === itemId);
-  if (!item) {
-    return;
-  }
-  const insertIndex = selectedEntryIndex.value >= 0 ? selectedEntryIndex.value + 1 : draftEntries.value.length;
-  const uid = getNextUid(draftEntries.value);
-  const cloned = normalizeEntry(klona(item.entry), uid);
-  cloned.uid = uid;
-  draftEntries.value.splice(insertIndex, 0, cloned);
-  selectedEntryUid.value = cloned.uid;
-  setStatus(`已粘贴条目 "${cloned.name}"`);
-}
-
-function deleteClipboardItem(itemId: string): void {
-  updatePersistedState(state => {
-    state.clipboard = state.clipboard.filter(entry => entry.id !== itemId);
-  });
-}
-
-function clearClipboard(): void {
-  if (!clipboardItems.value.length) {
-    return;
-  }
-  if (!confirm('确定清空剪贴板？')) {
-    return;
-  }
-  updatePersistedState(state => {
-    state.clipboard = [];
-  });
-}
-
 function handleSelectedPositionTypeChanged(): void {
   if (!selectedEntry.value) {
     return;
@@ -2631,21 +2801,30 @@ function applyBatchReplace(): void {
     toastr.warning('请先输入查找文本');
     return;
   }
-  const excludeTokens = parseBatchExcludeTokens(batchExcludeText.value);
+  if (!getEnabledFindFields().length) {
+    toastr.warning('请至少勾选一个查找字段');
+    return;
+  }
+  if (batchSearchScope.value === 'current' && !selectedEntry.value) {
+    toastr.warning('当前条目模式下请先选择一个条目');
+    return;
+  }
 
-  let regex: RegExp | null = null;
-  if (batchUseRegex.value) {
-    try {
-      regex = new RegExp(findText, 'g');
-    } catch (error) {
-      toastr.error(`正则表达式无效: ${error instanceof Error ? error.message : String(error)}`);
-      return;
-    }
+  const targetEntries = getBatchTargetEntries();
+  if (!targetEntries.length) {
+    toastr.warning('没有可处理的条目');
+    return;
+  }
+
+  const excludeTokens = parseBatchExcludeTokens(batchExcludeText.value);
+  const regex = resolveBatchRegex(findText);
+  if (batchUseRegex.value && !regex) {
+    return;
   }
 
   let touched = 0;
   let skipped = 0;
-  for (const entry of draftEntries.value) {
+  for (const entry of targetEntries) {
     if (shouldExcludeEntryForBatch(entry, excludeTokens)) {
       skipped += 1;
       continue;
@@ -2692,7 +2871,10 @@ function applyBatchReplace(): void {
     }
   }
 
-  setStatus(`查找替换完成，修改 ${touched} 条，排除 ${skipped} 条`);
+  resetFindState();
+  setStatus(
+    `查找替换完成（${batchSearchScope.value === 'current' ? '当前条目' : '全部条目'}），修改 ${touched} 条，排除 ${skipped} 条`,
+  );
 }
 
 function downloadJson(filename: string, payload: unknown): void {
@@ -3352,6 +3534,22 @@ function onPanelSave(): void {
   void saveCurrentWorldbook();
 }
 
+function discardUnsavedDraft(): void {
+  if (!hasUnsavedChanges.value) {
+    const target = window as unknown as Record<string, unknown>;
+    target[DIRTY_STATE_KEY] = false;
+    return;
+  }
+  draftEntries.value = klona(originalEntries.value);
+  ensureSelectedEntryExists();
+  resetFindState();
+  setStatus('已放弃未保存修改');
+}
+
+function onPanelDiscard(): void {
+  discardUnsavedDraft();
+}
+
 onMounted(() => {
   persistedState.value = readPersistedState();
 
@@ -3380,6 +3578,7 @@ onMounted(() => {
 
   window.addEventListener('wb-helper:refresh', onPanelRefresh);
   window.addEventListener('wb-helper:save', onPanelSave);
+  window.addEventListener('wb-helper:discard', onPanelDiscard);
   hostResizeWindow.value = resolveHostWindow();
   hostResizeWindow.value.addEventListener('resize', handleFloatingWindowResize);
 
@@ -3397,6 +3596,7 @@ onUnmounted(() => {
   stopPaneResize();
   window.removeEventListener('wb-helper:refresh', onPanelRefresh);
   window.removeEventListener('wb-helper:save', onPanelSave);
+  window.removeEventListener('wb-helper:discard', onPanelDiscard);
   hostResizeWindow.value?.removeEventListener('resize', handleFloatingWindowResize);
   hostResizeWindow.value = null;
 });
@@ -4137,6 +4337,41 @@ onUnmounted(() => {
   gap: 8px;
 }
 
+.find-scope-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.find-summary-text {
+  margin-left: auto;
+  color: #93c5fd;
+  font-size: 12px;
+}
+
+.find-active-hit {
+  border: 1px solid #334155;
+  border-radius: 7px;
+  padding: 6px 8px;
+  display: grid;
+  gap: 2px;
+  background: rgba(2, 6, 23, 0.45);
+}
+
+.find-active-hit strong {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.find-active-hit span {
+  color: #94a3b8;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .batch-exclude-note {
   color: #94a3b8;
   font-size: 11px;
@@ -4333,7 +4568,6 @@ onUnmounted(() => {
   gap: 10px;
 }
 
-.clipboard-window .tool-scroll,
 .activation-window .tool-scroll {
   max-height: min(58vh, 520px);
 }

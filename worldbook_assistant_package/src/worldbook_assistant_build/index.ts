@@ -275,8 +275,16 @@ function shouldClosePanel(): boolean {
 }
 
 function hidePanel(): boolean {
+  const hadUnsavedChanges = hasUnsavedChanges();
   if (!shouldClosePanel()) {
     return false;
+  }
+  if (hadUnsavedChanges) {
+    window.dispatchEvent(new Event('wb-helper:discard'));
+    const current = window as unknown as Record<string, unknown>;
+    const host = getHostWindow() as unknown as Record<string, unknown>;
+    current[DIRTY_STATE_KEY] = false;
+    host[DIRTY_STATE_KEY] = false;
   }
   const doc = getHostDocument();
   $(`#${PANEL_ID}`, doc).removeClass('active');
