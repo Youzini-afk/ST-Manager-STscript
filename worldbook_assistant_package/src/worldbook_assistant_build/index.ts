@@ -131,6 +131,43 @@ function ensurePanelStyle(): void {
 #${MENU_ID}.active {
   background-color: rgba(56, 189, 248, 0.18) !important;
 }
+
+#${PANEL_ID} .wb-theme-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 10300;
+  margin-top: 4px;
+  border: 1px solid var(--wb-host-border, #334155);
+  border-radius: 8px;
+  background: var(--wb-host-header-bg, #111827);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  padding: 4px;
+  min-width: 140px;
+}
+
+#${PANEL_ID} .wb-theme-dropdown button {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--wb-host-text, #e2e8f0);
+  padding: 6px 12px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+#${PANEL_ID} .wb-theme-dropdown button:hover {
+  background: rgba(124, 58, 237, 0.15);
+}
+
+#${PANEL_ID} .wb-theme-dropdown button.active {
+  background: rgba(124, 58, 237, 0.25);
+  color: #c4b5fd;
+}
 `;
   doc.head.append(style);
 }
@@ -183,14 +220,76 @@ function ensurePanelElement(): JQuery {
   $panel.off(`click${EVENT_NS}`, '.wb-assistant-save').on(`click${EVENT_NS}`, '.wb-assistant-save', () => {
     window.dispatchEvent(new Event('wb-helper:save'));
   });
-  $panel.off(`click${EVENT_NS}`, '.wb-assistant-theme').on(`click${EVENT_NS}`, '.wb-assistant-theme', () => {
-    window.dispatchEvent(new Event('wb-helper:toggle-theme'));
+  $panel.off(`click${EVENT_NS}`, '.wb-assistant-theme').on(`click${EVENT_NS}`, '.wb-assistant-theme', (evt) => {
+    evt.stopPropagation();
+    toggleThemeDropdown($panel[0] as HTMLDivElement);
   });
+  // Close theme dropdown on clicks elsewhere
+  getHostDocument().addEventListener('pointerdown', closeThemeDropdownOnOutside, true);
   $panel.off(`click${EVENT_NS}`, '.wb-assistant-close').on(`click${EVENT_NS}`, '.wb-assistant-close', () => {
     hidePanel();
   });
 
   return $panel;
+}
+
+const THEME_ITEMS: { key: string; label: string }[] = [
+  { key: 'ocean', label: '深海' },
+  { key: 'nebula', label: '星云' },
+  { key: 'forest', label: '森林' },
+  { key: 'sunset', label: '日落' },
+  { key: 'coffee', label: '咖啡' },
+  { key: 'paper', label: '纸莎草' },
+  { key: 'snow', label: '雪白' },
+];
+
+function toggleThemeDropdown(panel: HTMLDivElement): void {
+  const existing = panel.querySelector('.wb-theme-dropdown');
+  if (existing) {
+    existing.remove();
+    return;
+  }
+
+  const themeBtn = panel.querySelector('.wb-assistant-theme') as HTMLElement;
+  if (themeBtn) {
+    themeBtn.style.position = 'relative';
+  }
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'wb-theme-dropdown';
+
+  for (const item of THEME_ITEMS) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = item.label;
+    btn.dataset.themeKey = item.key;
+    btn.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('wb-helper:set-theme', { detail: item.key }));
+      dropdown.remove();
+    });
+    dropdown.appendChild(btn);
+  }
+
+  if (themeBtn) {
+    themeBtn.appendChild(dropdown);
+  } else {
+    panel.querySelector('.wb-assistant-header-actions')?.appendChild(dropdown);
+  }
+}
+
+function closeThemeDropdownOnOutside(event: PointerEvent): void {
+  const target = event.target as HTMLElement | null;
+  if (!target) {
+    return;
+  }
+  if (target.closest('.wb-assistant-theme') || target.closest('.wb-theme-dropdown')) {
+    return;
+  }
+  const doc = getHostDocument();
+  const dropdown = doc.querySelector('.wb-theme-dropdown');
+  if (dropdown) {
+    dropdown.remove();
+  }
 }
 
 function enablePanelDrag(panel: HTMLDivElement): void {

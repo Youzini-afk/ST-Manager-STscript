@@ -557,23 +557,6 @@
 
           <footer class="wb-status">
             <span>{{ isBusy ? '加载中...' : statusMessage }}</span>
-            <div class="theme-picker">
-              <button class="btn mini" type="button" @click="themePickerOpen = !themePickerOpen">
-                🎨 {{ THEMES[currentTheme].name }} {{ themePickerOpen ? '▴' : '▾' }}
-              </button>
-              <div v-if="themePickerOpen" class="theme-picker-dropdown">
-                <button
-                  v-for="(theme, key) in THEMES"
-                  :key="key"
-                  class="theme-picker-item"
-                  :class="{ active: key === currentTheme }"
-                  type="button"
-                  @click="setTheme(key as ThemeKey)"
-                >
-                  {{ theme.name }}
-                </button>
-              </div>
-            </div>
             <span>
               当前条目: {{ draftEntries.length }} | 内容字符: {{ totalContentChars }} |
               {{ hasUnsavedChanges ? '存在未保存修改' : '已同步' }}
@@ -918,9 +901,10 @@ interface PaneResizeState {
 
 type ThemeKey = 'ocean' | 'nebula' | 'forest' | 'sunset' | 'coffee' | 'paper' | 'snow';
 
-const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }> = {
+const THEMES: Record<ThemeKey, { name: string; label: string; colors: Record<string, string> }> = {
   ocean: {
     name: 'Ocean (Deep)',
+    label: '深海',
     colors: {
       '--wb-bg-root': '#0f172a',
       '--wb-bg-panel': '#1e293b',
@@ -941,7 +925,8 @@ const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }>
     },
   },
   nebula: {
-    name: 'Nebula',
+    name: 'Nebula (Dark)',
+    label: '星云',
     colors: {
       '--wb-bg-root': '#170b25',
       '--wb-bg-panel': '#261836',
@@ -963,6 +948,7 @@ const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }>
   },
   forest: {
     name: 'Forest',
+    label: '森林',
     colors: {
       '--wb-bg-root': '#051812',
       '--wb-bg-panel': '#0d2b21',
@@ -984,6 +970,7 @@ const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }>
   },
   sunset: {
     name: 'Sunset',
+    label: '日落',
     colors: {
       '--wb-bg-root': '#1a0f0f',
       '--wb-bg-panel': '#2e1818',
@@ -1005,6 +992,7 @@ const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }>
   },
   coffee: {
     name: 'Coffee',
+    label: '咖啡',
     colors: {
       '--wb-bg-root': '#161009',
       '--wb-bg-panel': '#291e16',
@@ -1026,6 +1014,7 @@ const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }>
   },
   paper: {
     name: 'Paper (Light)',
+    label: '纸莎草',
     colors: {
       '--wb-bg-root': '#fbf9f5',
       '--wb-bg-panel': '#f0eadd',
@@ -1047,6 +1036,7 @@ const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }>
   },
   snow: {
     name: 'Snow (Light)',
+    label: '雪白',
     colors: {
       '--wb-bg-root': '#ffffff',
       '--wb-bg-panel': '#f4f4f5',
@@ -4154,7 +4144,14 @@ function toggleTheme(): void {
 function setTheme(key: ThemeKey): void {
   currentTheme.value = key;
   themePickerOpen.value = false;
-  setStatus(`已切换主题: ${THEMES[key].name}`);
+  setStatus(`已切换主题: ${THEMES[key].label}`);
+}
+
+function onSetThemeEvent(event: Event): void {
+  const key = (event as CustomEvent).detail as string;
+  if (key && key in THEMES) {
+    setTheme(key as ThemeKey);
+  }
 }
 
 function selectWorldbookFromPicker(name: string): void {
@@ -4664,6 +4661,7 @@ onMounted(() => {
   window.addEventListener('wb-helper:save', onPanelSave);
   window.addEventListener('wb-helper:discard', onPanelDiscard);
   window.addEventListener('wb-helper:toggle-theme', toggleTheme);
+  window.addEventListener('wb-helper:set-theme', onSetThemeEvent);
   hostResizeWindow.value = resolveHostWindow();
   const hostDoc = hostResizeWindow.value.document;
   hostDoc.addEventListener('pointerdown', onHostPointerDownForWorldbookPicker, true);
@@ -4687,6 +4685,7 @@ onUnmounted(() => {
   window.removeEventListener('wb-helper:save', onPanelSave);
   window.removeEventListener('wb-helper:discard', onPanelDiscard);
   window.removeEventListener('wb-helper:toggle-theme', toggleTheme);
+  window.removeEventListener('wb-helper:set-theme', onSetThemeEvent);
   hostResizeWindow.value?.document.removeEventListener('pointerdown', onHostPointerDownForWorldbookPicker, true);
   hostResizeWindow.value?.document.removeEventListener('keydown', onHostKeyDownForWorldbookPicker, true);
   hostResizeWindow.value?.removeEventListener('resize', handleFloatingWindowResize);
@@ -6427,47 +6426,5 @@ watch(currentTheme, () => {
   border-color: var(--wb-primary-glow) !important;
   outline: none !important;
   box-shadow: 0 0 0 3px var(--wb-primary-soft) !important;
-}
-
-/* Theme picker dropdown */
-.theme-picker {
-  position: relative;
-  display: inline-block;
-}
-
-.theme-picker-dropdown {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
-  z-index: 10200;
-  border: 1px solid var(--wb-border-main);
-  border-radius: 8px;
-  background: var(--wb-bg-panel);
-  box-shadow: var(--wb-shadow-main);
-  padding: 4px;
-  display: flex;
-  flex-direction: column;
-  min-width: 180px;
-}
-
-.theme-picker-item {
-  width: 100%;
-  border: none !important;
-  border-radius: 6px;
-  background: transparent !important;
-  color: var(--wb-text-main) !important;
-  padding: 6px 10px;
-  text-align: left;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.theme-picker-item:hover {
-  background: var(--wb-primary-hover) !important;
-}
-
-.theme-picker-item.active {
-  background: var(--wb-primary-soft) !important;
-  color: var(--wb-primary-light) !important;
 }
 </style>
