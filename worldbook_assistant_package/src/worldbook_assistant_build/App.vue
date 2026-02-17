@@ -2353,6 +2353,27 @@ function getFindTargetElement(field: FindFieldKey): HTMLInputElement | HTMLTextA
   return root.querySelector('.editor-keyword-grid .field textarea');
 }
 
+function getTextareaLineHeight(element: HTMLTextAreaElement): number {
+  const style = window.getComputedStyle(element);
+  const lineHeight = Number.parseFloat(style.lineHeight);
+  if (Number.isFinite(lineHeight) && lineHeight > 0) {
+    return lineHeight;
+  }
+  const fontSize = Number.parseFloat(style.fontSize);
+  if (Number.isFinite(fontSize) && fontSize > 0) {
+    return fontSize * 1.4;
+  }
+  return 18;
+}
+
+function scrollTextareaToSelection(element: HTMLTextAreaElement, start: number): void {
+  const lineHeight = getTextareaLineHeight(element);
+  const before = element.value.slice(0, start);
+  const lineIndex = before.split('\n').length - 1;
+  const desiredTop = Math.max(0, lineIndex * lineHeight - element.clientHeight * 0.35);
+  element.scrollTop = desiredTop;
+}
+
 async function revealFindHitInEditor(hit: FindHit): Promise<void> {
   await nextTick();
   let target = getFindTargetElement(hit.field);
@@ -2370,7 +2391,16 @@ async function revealFindHitInEditor(hit: FindHit): Promise<void> {
 
   target.focus();
   target.setSelectionRange(start, end);
+  if (target instanceof HTMLTextAreaElement) {
+    scrollTextareaToSelection(target, start);
+  }
   target.scrollIntoView({ block: 'center', inline: 'nearest' });
+  requestAnimationFrame(() => {
+    target?.scrollIntoView({ block: 'center', inline: 'nearest' });
+    if (target instanceof HTMLTextAreaElement) {
+      scrollTextareaToSelection(target, start);
+    }
+  });
 }
 
 function moveToFindHit(hit: FindHit, index: number, total: number): void {
