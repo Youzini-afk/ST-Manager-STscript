@@ -1,6 +1,6 @@
 <template>
-  <div class="wb-assistant-root">
-          <section class="wb-toolbar">
+  <div class="wb-assistant-root" :style="themeStyles">
+    <section class="wb-toolbar">
             <label class="toolbar-label">
               <span>世界书</span>
               <div ref="worldbookPickerRef" class="worldbook-picker">
@@ -46,6 +46,7 @@
               导出
             </button>
             <button class="btn" type="button" @click="triggerImport">导入</button>
+            <button class="btn" type="button" title="切换主题 (Theme)" @click="toggleTheme">🎨</button>
             <input
               ref="importFileInput"
               class="hidden-input"
@@ -899,6 +900,96 @@ interface PaneResizeState {
   win: Window;
 }
 
+type ThemeKey = 'ocean' | 'nebula' | 'forest' | 'sunset' | 'coffee';
+
+const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }> = {
+  ocean: {
+    name: 'Ocean (Default)',
+    colors: {
+      '--wb-bg-root': 'linear-gradient(145deg, #0f172a 0%, #111827 45%, #1e293b 100%)',
+      '--wb-bg-panel': 'rgba(30, 41, 59, 0.25)',
+      '--wb-text-main': '#e2e8f0',
+      '--wb-text-muted': '#94a3b8',
+      '--wb-primary': '#3b82f6',
+      '--wb-primary-light': '#93c5fd',
+      '--wb-primary-hover': 'rgba(30, 41, 59, 0.6)',
+      '--wb-primary-soft': 'rgba(59, 130, 246, 0.15)',
+      '--wb-primary-glow': 'rgba(59, 130, 246, 0.5)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.25)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.35)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.45)',
+    },
+  },
+  nebula: {
+    name: 'Nebula',
+    colors: {
+      '--wb-bg-root': 'linear-gradient(145deg, #0f0b29 0%, #1a103c 45%, #2d1b4e 100%)',
+      '--wb-bg-panel': 'rgba(40, 20, 60, 0.25)',
+      '--wb-text-main': '#e9d5ff',
+      '--wb-text-muted': '#a855f7',
+      '--wb-primary': '#d8b4fe',
+      '--wb-primary-light': '#e9d5ff',
+      '--wb-primary-hover': 'rgba(40, 20, 60, 0.6)',
+      '--wb-primary-soft': 'rgba(216, 180, 254, 0.15)',
+      '--wb-primary-glow': 'rgba(216, 180, 254, 0.5)',
+      '--wb-input-bg': 'rgba(20, 10, 30, 0.3)',
+      '--wb-input-bg-hover': 'rgba(30, 15, 45, 0.4)',
+      '--wb-input-bg-focus': 'rgba(40, 20, 60, 0.5)',
+    },
+  },
+  forest: {
+    name: 'Forest',
+    colors: {
+      '--wb-bg-root': 'linear-gradient(145deg, #022c22 0%, #064e3b 45%, #065f46 100%)',
+      '--wb-bg-panel': 'rgba(6, 78, 59, 0.25)',
+      '--wb-text-main': '#d1fae5',
+      '--wb-text-muted': '#34d399',
+      '--wb-primary': '#10b981',
+      '--wb-primary-light': '#6ee7b7',
+      '--wb-primary-hover': 'rgba(6, 78, 59, 0.6)',
+      '--wb-primary-soft': 'rgba(16, 185, 129, 0.15)',
+      '--wb-primary-glow': 'rgba(16, 185, 129, 0.5)',
+      '--wb-input-bg': 'rgba(0, 20, 10, 0.3)',
+      '--wb-input-bg-hover': 'rgba(0, 30, 15, 0.4)',
+      '--wb-input-bg-focus': 'rgba(0, 40, 20, 0.5)',
+    },
+  },
+  sunset: {
+    name: 'Sunset',
+    colors: {
+      '--wb-bg-root': 'linear-gradient(145deg, #450a0a 0%, #7f1d1d 45%, #991b1b 100%)',
+      '--wb-bg-panel': 'rgba(127, 29, 29, 0.25)',
+      '--wb-text-main': '#fecaca',
+      '--wb-text-muted': '#f87171',
+      '--wb-primary': '#fbbf24',
+      '--wb-primary-light': '#fcd34d',
+      '--wb-primary-hover': 'rgba(70, 20, 20, 0.6)',
+      '--wb-primary-soft': 'rgba(251, 191, 36, 0.15)',
+      '--wb-primary-glow': 'rgba(251, 191, 36, 0.5)',
+      '--wb-input-bg': 'rgba(30, 10, 5, 0.3)',
+      '--wb-input-bg-hover': 'rgba(45, 15, 10, 0.4)',
+      '--wb-input-bg-focus': 'rgba(60, 20, 15, 0.5)',
+    },
+  },
+  coffee: {
+    name: 'Coffee',
+    colors: {
+      '--wb-bg-root': 'linear-gradient(145deg, #451a03 0%, #78350f 45%, #92400e 100%)',
+      '--wb-bg-panel': 'rgba(120, 53, 15, 0.25)',
+      '--wb-text-main': '#fde68a',
+      '--wb-text-muted': '#d97706',
+      '--wb-primary': '#f59e0b',
+      '--wb-primary-light': '#fde68a',
+      '--wb-primary-hover': 'rgba(80, 40, 20, 0.6)',
+      '--wb-primary-soft': 'rgba(245, 158, 11, 0.15)',
+      '--wb-primary-glow': 'rgba(245, 158, 11, 0.5)',
+      '--wb-input-bg': 'rgba(40, 20, 10, 0.3)',
+      '--wb-input-bg-hover': 'rgba(50, 25, 12, 0.4)',
+      '--wb-input-bg-focus': 'rgba(60, 30, 15, 0.5)',
+    },
+  },
+};
+
 interface WorldbookSnapshot {
   id: string;
   label: string;
@@ -957,7 +1048,9 @@ interface PersistedState {
   entry_history: Record<string, Record<string, EntrySnapshot[]>>;
   global_presets: GlobalWorldbookPreset[];
   last_global_preset_id: string;
+  last_global_preset_id: string;
   role_override_baseline: { preset_id: string; worldbooks: string[] } | null;
+  theme: ThemeKey;
 }
 
 interface ActivationLog {
@@ -1021,6 +1114,8 @@ const worldbookPickerSearchInputRef = ref<HTMLInputElement | null>(null);
 const rolePickerOpen = ref(false);
 const rolePickerRef = ref<HTMLElement | null>(null);
 const rolePickerSearchInputRef = ref<HTMLInputElement | null>(null);
+const currentTheme = ref<ThemeKey>('ocean');
+const themePickerOpen = ref(false);
 const globalWorldbookMode = ref(false);
 const selectedGlobalPresetId = ref('');
 const currentRoleContext = ref<PresetRoleBinding | null>(null);
@@ -1159,6 +1254,10 @@ const editorShellStyle = computed<Record<string, string> | undefined>(() => {
   return {
     gridTemplateColumns: `minmax(0, 1fr) ${RESIZE_HANDLE_SIZE}px minmax(${EDITOR_SIDE_MIN}px, min(${editorSideWidth.value}px, calc(100% - ${EDITOR_CENTER_MIN + RESIZE_HANDLE_SIZE}px)))`,
   };
+});
+
+const themeStyles = computed(() => {
+  return THEMES[currentTheme.value].colors;
 });
 
 const selectableWorldbookNames = computed(() => {
@@ -2181,6 +2280,7 @@ function normalizePersistedState(input: unknown): PersistedState {
     global_presets: globalPresets,
     last_global_preset_id: toStringSafe(root.last_global_preset_id),
     role_override_baseline: roleOverrideBaseline,
+    theme: (toStringSafe(root.theme) as ThemeKey) || 'ocean',
   };
 }
 
@@ -3966,6 +4066,14 @@ function toggleRolePicker(): void {
   void openRolePicker();
 }
 
+function toggleTheme(): void {
+  const keys = Object.keys(THEMES) as ThemeKey[];
+  const index = keys.indexOf(currentTheme.value);
+  const nextIndex = (index + 1) % keys.length;
+  currentTheme.value = keys[nextIndex];
+  setStatus(`已切换主题: ${THEMES[currentTheme.value].name}`);
+}
+
 function selectWorldbookFromPicker(name: string): void {
   if (!name) {
     return;
@@ -4504,8 +4612,9 @@ onUnmounted(() => {
   flex-direction: column;
   padding: 10px;
   gap: 10px;
-  background: linear-gradient(145deg, #0f172a 0%, #111827 45%, #1e293b 100%);
-  color: #e2e8f0;
+  gap: 10px;
+  background: var(--wb-bg-root);
+  color: var(--wb-text-main);
   font-size: 13px;
   line-height: 1.35;
   border-radius: 10px;
@@ -4520,8 +4629,9 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   border-radius: 12px;
+  border-radius: 12px;
   padding: 12px 16px;
-  background: rgba(30, 41, 59, 0.25);
+  background: var(--wb-bg-panel);
   margin-bottom: 8px;
 }
 
@@ -4536,7 +4646,7 @@ onUnmounted(() => {
 }
 
 .wb-title span {
-  color: #94a3b8;
+  color: var(--wb-text-muted);
 }
 
 .wb-header-actions,
@@ -4553,15 +4663,17 @@ onUnmounted(() => {
   flex-wrap: wrap;
   align-items: center;
   border-radius: 12px;
+  border-radius: 12px;
   padding: 10px 12px;
-  background: rgba(30, 41, 59, 0.25);
+  background: var(--wb-bg-panel);
 }
 
 .toolbar-label {
   display: inline-flex;
   align-items: center;
+  align-items: center;
   gap: 6px;
-  color: #cbd5e1;
+  color: var(--wb-text-muted);
   min-width: 320px;
   flex: 1 1 520px;
 }
@@ -4668,8 +4780,9 @@ onUnmounted(() => {
   border-radius: 12px;
   padding: 12px;
   display: grid;
+  display: grid;
   gap: 8px;
-  background: rgba(30, 41, 59, 0.25);
+  background: var(--wb-bg-panel);
 }
 
 .wb-history-shortcuts {
@@ -4682,7 +4795,7 @@ onUnmounted(() => {
 
 .global-mode-panel {
   border-radius: 12px;
-  background: rgba(30, 41, 59, 0.25);
+  background: var(--wb-bg-panel);
   padding: 12px;
   display: grid;
   gap: 12px;
@@ -4703,7 +4816,7 @@ onUnmounted(() => {
 
 .global-preset-panel {
   border-radius: 8px;
-  background: rgba(2, 6, 23, 0.3);
+  background: var(--wb-bg-panel);
   padding: 10px;
   display: grid;
   gap: 8px;
@@ -4711,7 +4824,7 @@ onUnmounted(() => {
 
 .preset-role-panel {
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.3);
+  background: var(--wb-bg-panel);
   padding: 10px;
   display: grid;
   gap: 6px;
@@ -4726,12 +4839,12 @@ onUnmounted(() => {
 }
 
 .preset-role-current {
-  color: #93c5fd;
+  color: var(--wb-primary);
   font-size: 12px;
 }
 
 .preset-role-current.empty {
-  color: #94a3b8;
+  color: var(--wb-text-muted);
 }
 
 .preset-role-actions {
@@ -4765,7 +4878,7 @@ onUnmounted(() => {
 }
 
 .role-picker-trigger:hover:not(:disabled) {
-  border-color: #38bdf8;
+  border-color: var(--wb-primary-light);
 }
 
 .role-picker-trigger-text {
@@ -4829,7 +4942,7 @@ onUnmounted(() => {
 }
 
 .role-picker-item:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.15);
+  background: var(--wb-primary-soft);
 }
 
 .role-picker-item:disabled {
@@ -4844,7 +4957,7 @@ onUnmounted(() => {
 }
 
 .role-picker-item .meta {
-  color: #93c5fd;
+  color: var(--wb-primary-light);
   flex-shrink: 0;
   font-size: 11px;
 }
@@ -4920,7 +5033,7 @@ onUnmounted(() => {
 }
 
 .global-mode-item:hover {
-  background: rgba(56, 189, 248, 0.14);
+  background: var(--wb-primary-soft);
 }
 
 .global-mode-item.add .global-mode-item-action {
@@ -5049,12 +5162,12 @@ onUnmounted(() => {
 }
 
 .entry-item:hover {
-  background: rgba(30, 41, 59, 0.6);
+  background: var(--wb-primary-hover);
   transform: none;
 }
 
 .entry-item.selected {
-  background: rgba(56, 189, 248, 0.15);
+  background: var(--wb-primary-soft);
   box-shadow: none;
 }
 
@@ -5122,7 +5235,7 @@ onUnmounted(() => {
 }
 
 .entry-chip.uid {
-  color: #93c5fd;
+  color: var(--wb-primary-light);
   font-size: 10px;
   padding: 1px 7px;
 }
@@ -5209,7 +5322,7 @@ onUnmounted(() => {
 .editor-center {
   border: none;
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--wb-bg-panel);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -5298,7 +5411,7 @@ onUnmounted(() => {
 
 .editor-content-title {
   font-size: 12px;
-  color: #93c5fd;
+  color: var(--wb-primary-light);
   letter-spacing: 0.01em;
 }
 
@@ -5338,7 +5451,7 @@ onUnmounted(() => {
   border: none;
   border-radius: 12px;
   padding: 12px;
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--wb-bg-panel);
   display: grid;
   gap: 7px;
 }
@@ -5367,7 +5480,7 @@ onUnmounted(() => {
 }
 
 .strategy-pill:hover {
-  background: rgba(30, 41, 59, 0.8);
+  background: var(--wb-primary-hover);
 }
 
 .strategy-pill.active.constant {
@@ -5405,7 +5518,7 @@ onUnmounted(() => {
 }
 
 .field > span {
-  color: #93c5fd;
+  color: var(--wb-primary-light);
 }
 
 .field.disabled {
@@ -5430,24 +5543,24 @@ onUnmounted(() => {
   border: 1px solid transparent;
   border-radius: 6px;
   padding: 8px 10px;
-  color: #e2e8f0;
-  background: rgba(0, 0, 0, 0.25);
+  color: var(--wb-text-main);
+  background: var(--wb-input-bg);
   transition: all 0.2s ease;
 }
 
 .text-input:hover,
 .text-area:hover,
 .toolbar-select:hover {
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--wb-input-bg-hover);
 }
 
 .text-input:focus,
 .text-area:focus,
 .toolbar-select:focus {
-  background: rgba(0, 0, 0, 0.45);
-  border-color: rgba(59, 130, 246, 0.5);
+  background: var(--wb-input-bg-focus);
+  border-color: var(--wb-primary-glow);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px var(--wb-primary-soft);
 }
 
 .text-area {
@@ -5482,13 +5595,13 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 8px;
   min-height: 170px;
-  background: rgba(15, 23, 42, 0.35);
+  background: var(--wb-bg-panel);
 }
 
 .tool-card h4 {
   margin: 0;
   font-size: 13px;
-  color: #93c5fd;
+  color: var(--wb-primary-light);
 }
 
 .tool-line.stacked {
@@ -5511,7 +5624,7 @@ onUnmounted(() => {
 
 .find-summary-text {
   margin-left: auto;
-  color: #93c5fd;
+  color: var(--wb-primary-light);
   font-size: 12px;
 }
 
@@ -5521,7 +5634,7 @@ onUnmounted(() => {
   padding: 6px 8px;
   display: grid;
   gap: 2px;
-  background: rgba(2, 6, 23, 0.45);
+  background: var(--wb-bg-panel);
 }
 
 .find-active-hit strong {
@@ -5554,7 +5667,7 @@ onUnmounted(() => {
   padding: 1px 8px;
   font-size: 11px;
   color: #cbd5e1;
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--wb-bg-panel);
 }
 
 .tool-details {
@@ -5591,11 +5704,11 @@ onUnmounted(() => {
   padding: 6px;
   display: grid;
   gap: 3px;
-  background: rgba(2, 6, 23, 0.48);
+  background: var(--wb-bg-panel);
 }
 
 .history-preview-card strong {
-  color: #93c5fd;
+  color: var(--wb-primary-light);
   font-size: 11px;
 }
 
@@ -5628,7 +5741,7 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 8px;
   align-items: center;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--wb-input-bg);
 }
 
 .item-main {
@@ -5660,7 +5773,7 @@ onUnmounted(() => {
   padding: 8px;
   display: grid;
   gap: 3px;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--wb-input-bg);
 }
 
 .activation-main,
@@ -5739,7 +5852,7 @@ onUnmounted(() => {
 
 .wb-status {
   border-radius: 10px;
-  background: rgba(30, 41, 59, 0.3);
+  background: var(--wb-bg-panel);
   padding: 10px 12px;
   display: flex;
   justify-content: space-between;
@@ -5758,7 +5871,7 @@ onUnmounted(() => {
 }
 
 .btn:hover:not(:disabled) {
-  border-color: #38bdf8;
+  border-color: var(--wb-primary-light);
 }
 
 .btn:disabled {
@@ -5813,7 +5926,7 @@ onUnmounted(() => {
   height: min(88vh, 940px);
   border: 1px solid #334155;
   border-radius: 12px;
-  background: linear-gradient(155deg, #0b1325, #020617);
+  background: var(--wb-bg-root);
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
   display: flex;
   flex-direction: column;
@@ -5827,7 +5940,7 @@ onUnmounted(() => {
   align-items: center;
   padding: 10px 12px;
   border-bottom: 1px solid #334155;
-  background: rgba(15, 23, 42, 0.85);
+  background: var(--wb-bg-panel);
 }
 
 .wb-history-modal-header strong {
@@ -5856,7 +5969,7 @@ onUnmounted(() => {
 
 .wb-history-versions {
   border-right: 1px solid #334155;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--wb-bg-panel);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -6093,10 +6206,10 @@ onUnmounted(() => {
   gap: 8px;
   padding: 10px 12px;
   margin: 0 0 8px 0;
-  background: rgba(30, 41, 59, 0.6);
+  background: var(--wb-bg-panel);
   border: none;
   border-radius: 6px;
-  color: #93c5fd;
+  color: var(--wb-primary);
   font-weight: 600;
   cursor: pointer;
 }
