@@ -2340,9 +2340,44 @@ function resetFindState(): void {
   findHitIndex.value = -1;
 }
 
+function getFindTargetElement(field: FindFieldKey): HTMLInputElement | HTMLTextAreaElement | null {
+  const root = editorShellRef.value;
+  if (!root) {
+    return null;
+  }
+  if (field === 'name') {
+    return root.querySelector('.editor-comment input.text-input');
+  }
+  if (field === 'content') {
+    return root.querySelector('.editor-content-area');
+  }
+  return root.querySelector('.editor-keyword-grid .field textarea');
+}
+
+async function revealFindHitInEditor(hit: FindHit): Promise<void> {
+  await nextTick();
+  let target = getFindTargetElement(hit.field);
+  if (!target) {
+    await nextTick();
+    target = getFindTargetElement(hit.field);
+    if (!target) {
+      return;
+    }
+  }
+
+  const maxLen = target.value.length;
+  const start = Math.max(0, Math.min(hit.start, maxLen));
+  const end = Math.max(start, Math.min(hit.end, maxLen));
+
+  target.focus();
+  target.setSelectionRange(start, end);
+  target.scrollIntoView({ block: 'center', inline: 'nearest' });
+}
+
 function moveToFindHit(hit: FindHit, index: number, total: number): void {
   findHitIndex.value = index;
   selectedEntryUid.value = hit.entryUid;
+  void revealFindHitInEditor(hit);
   const entryLabel = hit.entryName || `条目 ${hit.entryUid}`;
   setStatus(`查找 ${index + 1}/${total}: ${entryLabel} · ${getFindFieldLabel(hit.field)} · ${hit.preview}`);
 }
