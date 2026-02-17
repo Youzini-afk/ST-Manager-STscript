@@ -1,0 +1,13 @@
+{
+  "type": "script",
+  "enabled": true,
+  "name": "世界书助手",
+  "id": "d4f95f8a-8f4d-4aa9-9adc-c1f79de6dbe0",
+  "content": "import 'https://gcore.jsdelivr.net/gh/Youzini-afk/ST-Manager-STscript@v0.1.0/worldbook_assistant_package/dist/worldbook_assistant_build/index.js'",
+  "info": "发布新版本时只改 @v0.1.0 为新的 tag（如 @v0.1.1）",
+  "button": {
+    "enabled": true,
+    "buttons": []
+  },
+  "data": {}
+}
