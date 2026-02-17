@@ -101,6 +101,28 @@
                   清空全局
                 </button>
               </div>
+              <div class="global-preset-panel">
+                <label class="field">
+                  <span>世界书预设（切换即应用）</span>
+                  <select v-model="selectedGlobalPresetId" class="text-input" @change="onGlobalPresetSelectionChanged">
+                    <option value="">请选择预设...</option>
+                    <option v-for="preset in globalWorldbookPresets" :key="preset.id" :value="preset.id">
+                      {{ preset.name }}（{{ preset.worldbooks.length }}）
+                    </option>
+                  </select>
+                </label>
+                <div class="global-mode-actions">
+                  <button class="btn" type="button" :disabled="!bindings.global.length" @click="saveCurrentAsGlobalPreset">
+                    保存当前组合
+                  </button>
+                  <button class="btn" type="button" :disabled="!selectedGlobalPreset" @click="overwriteSelectedGlobalPreset">
+                    覆盖当前预设
+                  </button>
+                  <button class="btn danger" type="button" :disabled="!selectedGlobalPreset" @click="deleteSelectedGlobalPreset">
+                    删除预设
+                  </button>
+                </div>
+              </div>
               <div class="global-mode-grid">
                 <div class="global-mode-column">
                   <label class="field">
@@ -825,10 +847,19 @@ interface WorldbookVersionView {
   isCurrent: boolean;
 }
 
+interface GlobalWorldbookPreset {
+  id: string;
+  name: string;
+  worldbooks: string[];
+  updated_at: number;
+}
+
 interface PersistedState {
   last_worldbook: string;
   history: Record<string, WorldbookSnapshot[]>;
   entry_history: Record<string, Record<string, EntrySnapshot[]>>;
+  global_presets: GlobalWorldbookPreset[];
+  last_global_preset_id: string;
 }
 
 interface ActivationLog {
@@ -869,6 +900,7 @@ const MAIN_PANE_MIN = 220;
 const MAIN_EDITOR_MIN = 540;
 const EDITOR_SIDE_MIN = 280;
 const EDITOR_CENTER_MIN = 420;
+const GLOBAL_PRESET_LIMIT = 64;
 
 const strategyTypeOptions: StrategyType[] = ['constant', 'selective', 'vectorized'];
 const secondaryLogicOptions: SecondaryLogic[] = ['and_any', 'and_all', 'not_all', 'not_any'];
@@ -889,6 +921,7 @@ const worldbookPickerSearchText = ref('');
 const worldbookPickerRef = ref<HTMLElement | null>(null);
 const worldbookPickerSearchInputRef = ref<HTMLInputElement | null>(null);
 const globalWorldbookMode = ref(false);
+const selectedGlobalPresetId = ref('');
 const originalEntries = ref<WorldbookEntry[]>([]);
 const draftEntries = ref<WorldbookEntry[]>([]);
 const selectedEntryUid = ref<number | null>(null);
@@ -1020,6 +1053,12 @@ const selectableWorldbookNames = computed(() => {
     return worldbookNames.value;
   }
   return bindings.global.filter(name => worldbookNames.value.includes(name));
+});
+
+const globalWorldbookPresets = computed(() => persistedState.value.global_presets ?? []);
+
+const selectedGlobalPreset = computed(() => {
+  return globalWorldbookPresets.value.find(item => item.id === selectedGlobalPresetId.value) ?? null;
 });
 
 const filteredSelectableWorldbookNames = computed(() => {
@@ -1861,6 +1900,8 @@ function createDefaultPersistedState(): PersistedState {
     last_worldbook: '',
     history: {},
     entry_history: {},
+    global_presets: [],
+    last_global_preset_id: '',
   };
 }
 
@@ -1930,10 +1971,31 @@ function normalizePersistedState(input: unknown): PersistedState {
     }
   }
 
+  const globalPresetsRaw = Array.isArray(root.global_presets) ? root.global_presets : [];
+  const globalPresets = globalPresetsRaw
+    .map(item => {
+      const record = asRecord(item);
+      if (!record) {
+        return null;
+      }
+      const worldbooksRaw = Array.isArray(record.worldbooks) ? record.worldbooks : [];
+      const worldbooks = [...new Set(worldbooksRaw.map(name => toStringSafe(name).trim()).filter(Boolean))];
+      return {
+        id: toStringSafe(record.id, createId('global-preset')),
+        name: toStringSafe(record.name, '未命名预设'),
+        worldbooks,
+        updated_at: toNumberSafe(record.updated_at, Date.now()),
+      } satisfies GlobalWorldbookPreset;
+    })
+    .filter((item): item is GlobalWorldbookPreset => item !== null)
+    .slice(0, GLOBAL_PRESET_LIMIT);
+
   return {
     last_worldbook: toStringSafe(root.last_worldbook),
     history,
     entry_history: entryHistory,
+    global_presets: globalPresets,
+    last_global_preset_id: toStringSafe(root.last_global_preset_id),
   };
 }
 
@@ -1942,11 +2004,26 @@ function readPersistedState(): PersistedState {
   return normalizePersistedState(vars[STORAGE_KEY]);
 }
 
+function syncSelectedGlobalPresetFromState(): void {
+  const presets = persistedState.value.global_presets;
+  const byId = new Set(presets.map(item => item.id));
+  const preferredId = persistedState.value.last_global_preset_id;
+  if (preferredId && byId.has(preferredId)) {
+    selectedGlobalPresetId.value = preferredId;
+    return;
+  }
+  if (selectedGlobalPresetId.value && byId.has(selectedGlobalPresetId.value)) {
+    return;
+  }
+  selectedGlobalPresetId.value = '';
+}
+
 function writePersistedState(state: PersistedState): void {
   const vars = getVariables({ type: 'script', script_id: getScriptId() });
   vars[STORAGE_KEY] = state;
   replaceVariables(vars, { type: 'script', script_id: getScriptId() });
   persistedState.value = state;
+  syncSelectedGlobalPresetFromState();
 }
 
 function updatePersistedState(mutator: (state: PersistedState) => void): void {
@@ -3277,6 +3354,123 @@ async function clearGlobalWorldbooks(): Promise<void> {
   await applyGlobalWorldbooks([], '已清空全局世界书');
 }
 
+function getCurrentGlobalWorldbookSet(): string[] {
+  return [...new Set(bindings.global.map(name => name.trim()).filter(Boolean))];
+}
+
+async function applySelectedGlobalPreset(): Promise<void> {
+  const preset = selectedGlobalPreset.value;
+  if (!preset) {
+    return;
+  }
+  const normalized = [...new Set(preset.worldbooks.map(name => name.trim()).filter(Boolean))];
+  const missing = normalized.filter(name => !worldbookNames.value.includes(name));
+  const matched = normalized.filter(name => worldbookNames.value.includes(name));
+  const success = await applyGlobalWorldbooks(matched, `已应用预设: ${preset.name}`);
+  if (!success) {
+    return;
+  }
+  updatePersistedState(state => {
+    state.last_global_preset_id = preset.id;
+  });
+  if (missing.length) {
+    toastr.warning(`预设内有 ${missing.length} 本世界书在当前环境不存在，已自动忽略`);
+  }
+}
+
+function onGlobalPresetSelectionChanged(): void {
+  if (!selectedGlobalPresetId.value) {
+    updatePersistedState(state => {
+      state.last_global_preset_id = '';
+    });
+    setStatus('已取消预设选择');
+    return;
+  }
+  void applySelectedGlobalPreset();
+}
+
+function saveCurrentAsGlobalPreset(): void {
+  const current = getCurrentGlobalWorldbookSet();
+  if (!current.length) {
+    toastr.warning('当前全局世界书为空，无法保存预设');
+    return;
+  }
+  const defaultName = selectedGlobalPreset.value?.name || `全局预设 ${globalWorldbookPresets.value.length + 1}`;
+  const nameRaw = prompt('请输入预设名称', defaultName);
+  const name = toStringSafe(nameRaw).trim();
+  if (!name) {
+    return;
+  }
+  const sameNamePreset = globalWorldbookPresets.value.find(item => item.name === name);
+  if (sameNamePreset && !confirm(`预设 "${name}" 已存在，是否覆盖？`)) {
+    return;
+  }
+  const presetId = sameNamePreset?.id || createId('global-preset');
+  const nextPreset: GlobalWorldbookPreset = {
+    id: presetId,
+    name,
+    worldbooks: current,
+    updated_at: Date.now(),
+  };
+  updatePersistedState(state => {
+    const list = (state.global_presets ?? []).filter(item => item.id !== presetId);
+    list.unshift(nextPreset);
+    state.global_presets = list.slice(0, GLOBAL_PRESET_LIMIT);
+    state.last_global_preset_id = presetId;
+  });
+  selectedGlobalPresetId.value = presetId;
+  setStatus(`已保存预设: ${name}（${current.length} 本）`);
+  toastr.success(`已保存预设: ${name}`);
+}
+
+function overwriteSelectedGlobalPreset(): void {
+  const preset = selectedGlobalPreset.value;
+  if (!preset) {
+    return;
+  }
+  const current = getCurrentGlobalWorldbookSet();
+  if (!current.length) {
+    toastr.warning('当前全局世界书为空，无法覆盖预设');
+    return;
+  }
+  if (!confirm(`确定用当前全局世界书覆盖预设 "${preset.name}" 吗？`)) {
+    return;
+  }
+  updatePersistedState(state => {
+    state.global_presets = (state.global_presets ?? []).map(item => {
+      if (item.id !== preset.id) {
+        return item;
+      }
+      return {
+        ...item,
+        worldbooks: current,
+        updated_at: Date.now(),
+      };
+    });
+    state.last_global_preset_id = preset.id;
+  });
+  setStatus(`已覆盖预设: ${preset.name}（${current.length} 本）`);
+  toastr.success(`已覆盖预设: ${preset.name}`);
+}
+
+function deleteSelectedGlobalPreset(): void {
+  const preset = selectedGlobalPreset.value;
+  if (!preset) {
+    return;
+  }
+  if (!confirm(`确定删除预设 "${preset.name}" 吗？`)) {
+    return;
+  }
+  updatePersistedState(state => {
+    state.global_presets = (state.global_presets ?? []).filter(item => item.id !== preset.id);
+    if (state.last_global_preset_id === preset.id) {
+      state.last_global_preset_id = '';
+    }
+  });
+  selectedGlobalPresetId.value = '';
+  setStatus(`已删除预设: ${preset.name}`);
+}
+
 function closeWorldbookPicker(): void {
   worldbookPickerOpen.value = false;
 }
@@ -3381,6 +3575,7 @@ async function reloadWorldbookNames(preferred?: string): Promise<void> {
 
 async function hardRefresh(): Promise<void> {
   persistedState.value = readPersistedState();
+  syncSelectedGlobalPresetFromState();
   await reloadWorldbookNames(selectedWorldbookName.value || undefined);
   await refreshBindings();
   if (globalWorldbookMode.value) {
@@ -3743,6 +3938,7 @@ function onPanelDiscard(): void {
 
 onMounted(() => {
   persistedState.value = readPersistedState();
+  syncSelectedGlobalPresetFromState();
 
   subscriptions.push(
     eventOn(tavern_events.WORLD_INFO_ACTIVATED, entries => {
@@ -4005,6 +4201,15 @@ onUnmounted(() => {
   color: #93c5fd;
   font-weight: 700;
   letter-spacing: 0.02em;
+}
+
+.global-preset-panel {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.44);
+  padding: 8px;
+  display: grid;
+  gap: 8px;
 }
 
 .global-mode-grid {
