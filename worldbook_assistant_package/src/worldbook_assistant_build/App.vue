@@ -147,22 +147,34 @@
                       解绑当前角色
                     </button>
                   </div>
-                  <details class="preset-role-picker">
-                    <summary>从角色卡列表选择绑定</summary>
-                    <div class="preset-role-picker-body">
+                  <div ref="rolePickerRef" class="role-picker">
+                    <button
+                      class="role-picker-trigger"
+                      type="button"
+                      :disabled="!selectedGlobalPreset"
+                      @click="toggleRolePicker"
+                    >
+                      <span class="role-picker-trigger-text">
+                        {{ selectedGlobalPreset ? '从角色卡列表选择绑定' : '请先选择预设' }}
+                      </span>
+                      <span class="role-picker-trigger-arrow">{{ rolePickerOpen ? '▴' : '▾' }}</span>
+                    </button>
+                    <div v-if="rolePickerOpen" class="role-picker-dropdown">
                       <input
+                        ref="rolePickerSearchInputRef"
                         v-model="roleBindSearchText"
                         type="text"
-                        class="text-input"
+                        class="text-input role-picker-search"
                         placeholder="搜索角色名 / avatar..."
+                        @keydown.enter.prevent="bindFirstRoleCandidate"
                       />
-                      <div class="preset-role-picker-list">
+                      <div class="role-picker-list">
                         <button
                           v-for="candidate in roleBindingCandidates"
                           :key="`role-candidate-${candidate.key}`"
-                          class="preset-role-picker-item"
+                          class="role-picker-item"
                           type="button"
-                          :disabled="!selectedGlobalPreset || candidate.bound"
+                          :disabled="candidate.bound"
                           @click="bindRoleCandidateToSelectedPreset(candidate)"
                         >
                           <span class="name">{{ candidate.name }}</span>
@@ -171,7 +183,7 @@
                         <div v-if="!roleBindingCandidates.length" class="empty-note">没有匹配角色</div>
                       </div>
                     </div>
-                  </details>
+                  </div>
                   <div class="preset-role-tags">
                     <button
                       v-for="binding in selectedGlobalPresetRoleBindings"
@@ -1000,9 +1012,13 @@ const worldbookPickerOpen = ref(false);
 const worldbookPickerSearchText = ref('');
 const worldbookPickerRef = ref<HTMLElement | null>(null);
 const worldbookPickerSearchInputRef = ref<HTMLInputElement | null>(null);
+const rolePickerOpen = ref(false);
+const rolePickerRef = ref<HTMLElement | null>(null);
+const rolePickerSearchInputRef = ref<HTMLInputElement | null>(null);
 const globalWorldbookMode = ref(false);
 const selectedGlobalPresetId = ref('');
 const currentRoleContext = ref<PresetRoleBinding | null>(null);
+const roleBindingSourceCandidates = ref<PresetRoleBinding[]>([]);
 const originalEntries = ref<WorldbookEntry[]>([]);
 const draftEntries = ref<WorldbookEntry[]>([]);
 const selectedEntryUid = ref<number | null>(null);
@@ -1157,7 +1173,7 @@ const isCurrentRoleBoundToSelectedPreset = computed(() => {
 const roleBindingCandidates = computed<RoleBindingCandidate[]>(() => {
   const keyword = roleBindSearchText.value.trim().toLowerCase();
   const boundSet = new Set(selectedGlobalPresetRoleBindings.value.map(item => item.key));
-  const list = collectRoleBindingCandidates();
+  const list = roleBindingSourceCandidates.value;
   const filtered = keyword
     ? list.filter(item => {
         return (
@@ -3516,70 +3532,62 @@ function isSameWorldbookSet(left: string[], right: string[]): boolean {
   return true;
 }
 
-function getSillyTavernContextRecord(): Record<string, unknown> | null {
-  const parentRecord = asRecord(window.parent as unknown as Record<string, unknown>);
-  const selfRecord = asRecord(window as unknown as Record<string, unknown>);
-  return asRecord(parentRecord?.SillyTavern) ?? asRecord(selfRecord?.SillyTavern);
-}
-
-function collectRoleBindingCandidates(): PresetRoleBinding[] {
-  const stContext = getSillyTavernContextRecord();
-  if (!stContext) {
-    return [];
+function refreshRoleBindingCandidates(): void {
+  let names: string[] = [];
+  try {
+    names = typeof getCharacterNames === 'function' ? getCharacterNames() : [];
+  } catch (error) {
+    console.warn('[WorldbookAssistant] getCharacterNames failed:', error);
   }
-  const characters = Array.isArray(stContext.characters) ? stContext.characters : [];
+
   const dedupe = new Set<string>();
   const result: PresetRoleBinding[] = [];
 
-  for (let index = 0; index < characters.length; index += 1) {
-    const characterRecord = asRecord(characters[index]);
-    if (!characterRecord) {
+  for (const charName of names) {
+    const trimmed = charName.trim();
+    if (!trimmed) {
       continue;
     }
-    const avatar = toStringSafe(characterRecord.avatar).trim();
-    const fallbackName = avatar || `角色#${index}`;
-    const name = toStringSafe(characterRecord.name, fallbackName).trim() || fallbackName;
-    const key = avatar ? `avatar:${avatar}` : `character:${index}`;
+    const key = `char:${trimmed}`;
     if (dedupe.has(key)) {
       continue;
     }
     dedupe.add(key);
     result.push({
       key,
-      name,
-      avatar,
+      name: trimmed,
+      avatar: '',
       updated_at: Date.now(),
     });
   }
 
   result.sort((left, right) => left.name.localeCompare(right.name, 'zh-Hans-CN'));
-  return result;
+
+  const current = resolveCurrentRoleContext();
+  if (current && !result.some(item => item.key === current.key)) {
+    result.unshift(current);
+  }
+  roleBindingSourceCandidates.value = result;
 }
 
 function resolveCurrentRoleContext(): PresetRoleBinding | null {
-  const stContext = getSillyTavernContextRecord();
-  if (!stContext) {
+  let name: string | null = null;
+  try {
+    name = typeof getCurrentCharacterName === 'function' ? getCurrentCharacterName() : null;
+  } catch (error) {
+    console.warn('[WorldbookAssistant] getCurrentCharacterName failed:', error);
+  }
+  if (!name) {
     return null;
   }
-
-  const rawCharacterId = stContext.characterId;
-  const characterIdText = toStringSafe(rawCharacterId).trim();
-  if (!characterIdText || characterIdText === 'null' || characterIdText === 'undefined') {
+  const trimmed = name.trim();
+  if (!trimmed) {
     return null;
   }
-
-  const characterIndex = Math.floor(toNumberSafe(rawCharacterId, -1));
-  const characters = Array.isArray(stContext.characters) ? stContext.characters : [];
-  const characterRecord = characterIndex >= 0 ? asRecord(characters[characterIndex]) : null;
-  const avatar = toStringSafe(characterRecord?.avatar).trim();
-  const fallbackName = avatar || `角色#${characterIdText}`;
-  const roleName = toStringSafe(characterRecord?.name, fallbackName).trim() || fallbackName;
-  const key = avatar ? `avatar:${avatar}` : `character:${characterIdText}`;
-
   return {
-    key,
-    name: roleName,
-    avatar,
+    key: `char:${trimmed}`,
+    name: trimmed,
+    avatar: '',
     updated_at: Date.now(),
   };
 }
@@ -3648,6 +3656,7 @@ async function autoApplyRoleBoundPreset(): Promise<void> {
 }
 
 function onGlobalPresetSelectionChanged(): void {
+  closeRolePicker();
   if (!selectedGlobalPresetId.value) {
     updatePersistedState(state => {
       state.last_global_preset_id = '';
@@ -3703,6 +3712,7 @@ function bindRoleCandidateToSelectedPreset(candidate: RoleBindingCandidate): voi
     return;
   }
   bindRoleToSelectedPreset(candidate);
+  closeRolePicker();
 }
 
 function removeRoleBindingFromSelectedPreset(bindingKey: string): void {
@@ -3821,11 +3831,27 @@ function closeWorldbookPicker(): void {
   worldbookPickerOpen.value = false;
 }
 
+function closeRolePicker(): void {
+  rolePickerOpen.value = false;
+}
+
 function openWorldbookPicker(): void {
   worldbookPickerSearchText.value = '';
   worldbookPickerOpen.value = true;
   void nextTick(() => {
     worldbookPickerSearchInputRef.value?.focus();
+  });
+}
+
+function openRolePicker(): void {
+  if (!selectedGlobalPreset.value) {
+    return;
+  }
+  roleBindSearchText.value = '';
+  refreshRoleBindingCandidates();
+  rolePickerOpen.value = true;
+  void nextTick(() => {
+    rolePickerSearchInputRef.value?.focus();
   });
 }
 
@@ -3837,6 +3863,14 @@ function toggleWorldbookPicker(): void {
   openWorldbookPicker();
 }
 
+function toggleRolePicker(): void {
+  if (rolePickerOpen.value) {
+    closeRolePicker();
+    return;
+  }
+  void openRolePicker();
+}
+
 function selectWorldbookFromPicker(name: string): void {
   if (!name) {
     return;
@@ -3845,27 +3879,47 @@ function selectWorldbookFromPicker(name: string): void {
   closeWorldbookPicker();
 }
 
+function bindFirstRoleCandidate(): void {
+  const first = roleBindingCandidates.value.find(item => !item.bound);
+  if (!first) {
+    return;
+  }
+  bindRoleCandidateToSelectedPreset(first);
+}
+
 function onHostPointerDownForWorldbookPicker(event: PointerEvent): void {
-  if (!worldbookPickerOpen.value) {
+  if (!worldbookPickerOpen.value && !rolePickerOpen.value) {
     return;
   }
-  const root = worldbookPickerRef.value;
   const target = event.target as Node | null;
-  if (!root || !target) {
+  if (!target) {
     closeWorldbookPicker();
+    closeRolePicker();
     return;
   }
-  if (!root.contains(target)) {
-    closeWorldbookPicker();
+
+  if (worldbookPickerOpen.value) {
+    const worldbookRoot = worldbookPickerRef.value;
+    if (!worldbookRoot || !worldbookRoot.contains(target)) {
+      closeWorldbookPicker();
+    }
+  }
+
+  if (rolePickerOpen.value) {
+    const roleRoot = rolePickerRef.value;
+    if (!roleRoot || !roleRoot.contains(target)) {
+      closeRolePicker();
+    }
   }
 }
 
 function onHostKeyDownForWorldbookPicker(event: KeyboardEvent): void {
-  if (!worldbookPickerOpen.value) {
+  if (!worldbookPickerOpen.value && !rolePickerOpen.value) {
     return;
   }
   if (event.key === 'Escape') {
     closeWorldbookPicker();
+    closeRolePicker();
   }
 }
 
@@ -3924,6 +3978,7 @@ async function hardRefresh(): Promise<void> {
   syncSelectedGlobalPresetFromState();
   await reloadWorldbookNames(selectedWorldbookName.value || undefined);
   await refreshBindings();
+  refreshRoleBindingCandidates();
   refreshCurrentRoleContext();
   await autoApplyRoleBoundPreset();
   if (globalWorldbookMode.value) {
@@ -4302,6 +4357,7 @@ onMounted(() => {
     eventOn(tavern_events.CHAT_CHANGED, () => {
       void (async () => {
         await refreshBindings();
+        refreshRoleBindingCandidates();
         refreshCurrentRoleContext();
         await autoApplyRoleBoundPreset();
         if (globalWorldbookMode.value) {
@@ -4594,45 +4650,82 @@ onUnmounted(() => {
   flex-wrap: wrap;
 }
 
-.preset-role-picker {
-  border: 1px solid #334155;
-  border-radius: 8px;
-  background: rgba(2, 6, 23, 0.4);
-  padding: 6px 8px;
+.role-picker {
+  position: relative;
 }
 
-.preset-role-picker > summary {
+.role-picker-trigger {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #0f172a;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   cursor: pointer;
-  color: #cbd5e1;
-  font-size: 12px;
 }
 
-.preset-role-picker[open] > summary {
-  margin-bottom: 6px;
+.role-picker-trigger:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 
-.preset-role-picker-body {
-  display: grid;
-  gap: 6px;
+.role-picker-trigger:hover:not(:disabled) {
+  border-color: #38bdf8;
 }
 
-.preset-role-picker-list {
+.role-picker-trigger-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.role-picker-trigger-arrow {
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.role-picker-dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 10130;
   border: 1px solid #334155;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.65);
-  max-height: 180px;
+  background: rgba(2, 6, 23, 0.98);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.72);
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.role-picker-search {
+  width: 100%;
+}
+
+.role-picker-list {
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.62);
+  max-height: 220px;
   overflow: auto;
   display: flex;
   flex-direction: column;
 }
 
-.preset-role-picker-item {
+.role-picker-item {
   width: 100%;
   border: none;
-  border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+  border-bottom: 1px solid rgba(51, 65, 85, 0.62);
   background: transparent;
   color: #e2e8f0;
-  padding: 6px 8px;
+  padding: 8px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4641,26 +4734,26 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.preset-role-picker-item:last-child {
+.role-picker-item:last-child {
   border-bottom: none;
 }
 
-.preset-role-picker-item:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.14);
+.role-picker-item:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.15);
 }
 
-.preset-role-picker-item:disabled {
+.role-picker-item:disabled {
   opacity: 0.55;
   cursor: default;
 }
 
-.preset-role-picker-item .name {
+.role-picker-item .name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.preset-role-picker-item .meta {
+.role-picker-item .meta {
   color: #93c5fd;
   flex-shrink: 0;
   font-size: 11px;
