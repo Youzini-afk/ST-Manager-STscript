@@ -899,92 +899,154 @@ interface PaneResizeState {
   win: Window;
 }
 
-type ThemeKey = 'ocean' | 'nebula' | 'forest' | 'sunset' | 'coffee';
+type ThemeKey = 'ocean' | 'nebula' | 'forest' | 'sunset' | 'coffee' | 'paper' | 'snow';
 
 const THEMES: Record<ThemeKey, { name: string; colors: Record<string, string> }> = {
   ocean: {
-    name: 'Ocean',
+    name: 'Ocean (Deep)',
     colors: {
-      '--wb-bg-root': '#0f1923',
-      '--wb-bg-panel': 'rgba(255, 255, 255, 0.04)',
-      '--wb-text-main': '#d4dbe5',
-      '--wb-text-muted': '#7b8a9e',
-      '--wb-primary': '#5b8cbf',
-      '--wb-primary-light': '#8cb4d8',
-      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
-      '--wb-primary-soft': 'rgba(91, 140, 191, 0.12)',
-      '--wb-primary-glow': 'rgba(91, 140, 191, 0.35)',
-      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
-      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
-      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
+      '--wb-bg-root': '#0f172a',
+      '--wb-bg-panel': '#1e293b',
+      '--wb-text-main': '#f1f5f9',
+      '--wb-text-muted': '#94a3b8',
+      '--wb-primary': '#0ea5e9',
+      '--wb-primary-light': '#38bdf8',
+      '--wb-primary-hover': 'rgba(56, 189, 248, 0.15)',
+      '--wb-primary-soft': 'rgba(14, 165, 233, 0.15)',
+      '--wb-primary-glow': 'rgba(14, 165, 233, 0.4)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.25)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.35)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.45)',
+      '--wb-border-subtle': 'rgba(255, 255, 255, 0.08)',
+      '--wb-border-main': 'rgba(255, 255, 255, 0.12)',
+      '--wb-shadow-main': '0 12px 28px rgba(0, 0, 0, 0.5)',
+      '--wb-scrollbar-thumb': 'rgba(255, 255, 255, 0.2)',
     },
   },
   nebula: {
     name: 'Nebula',
     colors: {
-      '--wb-bg-root': '#151020',
-      '--wb-bg-panel': 'rgba(255, 255, 255, 0.035)',
-      '--wb-text-main': '#d0cbe0',
-      '--wb-text-muted': '#8a7faa',
-      '--wb-primary': '#9b85c4',
-      '--wb-primary-light': '#b9a8d8',
-      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
-      '--wb-primary-soft': 'rgba(155, 133, 196, 0.12)',
-      '--wb-primary-glow': 'rgba(155, 133, 196, 0.35)',
-      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
-      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
-      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
+      '--wb-bg-root': '#170b25',
+      '--wb-bg-panel': '#261836',
+      '--wb-text-main': '#f3e8ff',
+      '--wb-text-muted': '#a855f7',
+      '--wb-primary': '#c084fc',
+      '--wb-primary-light': '#d8b4fe',
+      '--wb-primary-hover': 'rgba(192, 132, 252, 0.15)',
+      '--wb-primary-soft': 'rgba(168, 85, 247, 0.15)',
+      '--wb-primary-glow': 'rgba(192, 132, 252, 0.4)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.25)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.35)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.45)',
+      '--wb-border-subtle': 'rgba(255, 255, 255, 0.08)',
+      '--wb-border-main': 'rgba(255, 255, 255, 0.12)',
+      '--wb-shadow-main': '0 12px 28px rgba(0, 0, 0, 0.5)',
+      '--wb-scrollbar-thumb': 'rgba(255, 255, 255, 0.2)',
     },
   },
   forest: {
     name: 'Forest',
     colors: {
-      '--wb-bg-root': '#0e1a16',
-      '--wb-bg-panel': 'rgba(255, 255, 255, 0.035)',
-      '--wb-text-main': '#c8dbd2',
-      '--wb-text-muted': '#6b9a85',
-      '--wb-primary': '#5ea88a',
-      '--wb-primary-light': '#88c4a8',
-      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
-      '--wb-primary-soft': 'rgba(94, 168, 138, 0.12)',
-      '--wb-primary-glow': 'rgba(94, 168, 138, 0.35)',
-      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
-      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
-      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
+      '--wb-bg-root': '#051812',
+      '--wb-bg-panel': '#0d2b21',
+      '--wb-text-main': '#ecfdf5',
+      '--wb-text-muted': '#34d399',
+      '--wb-primary': '#10b981',
+      '--wb-primary-light': '#34d399',
+      '--wb-primary-hover': 'rgba(16, 185, 129, 0.15)',
+      '--wb-primary-soft': 'rgba(5, 150, 105, 0.15)',
+      '--wb-primary-glow': 'rgba(16, 185, 129, 0.4)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.25)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.35)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.45)',
+      '--wb-border-subtle': 'rgba(255, 255, 255, 0.08)',
+      '--wb-border-main': 'rgba(255, 255, 255, 0.12)',
+      '--wb-shadow-main': '0 12px 28px rgba(0, 0, 0, 0.5)',
+      '--wb-scrollbar-thumb': 'rgba(255, 255, 255, 0.2)',
     },
   },
   sunset: {
     name: 'Sunset',
     colors: {
-      '--wb-bg-root': '#1a1210',
-      '--wb-bg-panel': 'rgba(255, 255, 255, 0.035)',
-      '--wb-text-main': '#dbd0ca',
-      '--wb-text-muted': '#a0877a',
-      '--wb-primary': '#c4886a',
-      '--wb-primary-light': '#d4a890',
-      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
-      '--wb-primary-soft': 'rgba(196, 136, 106, 0.12)',
-      '--wb-primary-glow': 'rgba(196, 136, 106, 0.35)',
-      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
-      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
-      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
+      '--wb-bg-root': '#1a0f0f',
+      '--wb-bg-panel': '#2e1818',
+      '--wb-text-main': '#fff1f2',
+      '--wb-text-muted': '#fb7185',
+      '--wb-primary': '#fb923c',
+      '--wb-primary-light': '#fdba74',
+      '--wb-primary-hover': 'rgba(251, 146, 60, 0.15)',
+      '--wb-primary-soft': 'rgba(234, 88, 12, 0.15)',
+      '--wb-primary-glow': 'rgba(251, 146, 60, 0.4)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.25)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.35)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.45)',
+      '--wb-border-subtle': 'rgba(255, 255, 255, 0.08)',
+      '--wb-border-main': 'rgba(255, 255, 255, 0.12)',
+      '--wb-shadow-main': '0 12px 28px rgba(0, 0, 0, 0.5)',
+      '--wb-scrollbar-thumb': 'rgba(255, 255, 255, 0.2)',
     },
   },
   coffee: {
     name: 'Coffee',
     colors: {
-      '--wb-bg-root': '#17130e',
-      '--wb-bg-panel': 'rgba(255, 255, 255, 0.035)',
-      '--wb-text-main': '#d5cec5',
-      '--wb-text-muted': '#9a8a78',
-      '--wb-primary': '#b8956a',
-      '--wb-primary-light': '#cfb08e',
-      '--wb-primary-hover': 'rgba(255, 255, 255, 0.04)',
-      '--wb-primary-soft': 'rgba(184, 149, 106, 0.12)',
-      '--wb-primary-glow': 'rgba(184, 149, 106, 0.35)',
-      '--wb-input-bg': 'rgba(0, 0, 0, 0.2)',
-      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.28)',
-      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.36)',
+      '--wb-bg-root': '#161009',
+      '--wb-bg-panel': '#291e16',
+      '--wb-text-main': '#fffbeb',
+      '--wb-text-muted': '#d97706',
+      '--wb-primary': '#fbbf24',
+      '--wb-primary-light': '#fcd34d',
+      '--wb-primary-hover': 'rgba(251, 191, 36, 0.15)',
+      '--wb-primary-soft': 'rgba(217, 119, 6, 0.15)',
+      '--wb-primary-glow': 'rgba(251, 191, 36, 0.4)',
+      '--wb-input-bg': 'rgba(0, 0, 0, 0.25)',
+      '--wb-input-bg-hover': 'rgba(0, 0, 0, 0.35)',
+      '--wb-input-bg-focus': 'rgba(0, 0, 0, 0.45)',
+      '--wb-border-subtle': 'rgba(255, 255, 255, 0.08)',
+      '--wb-border-main': 'rgba(255, 255, 255, 0.12)',
+      '--wb-shadow-main': '0 12px 28px rgba(0, 0, 0, 0.5)',
+      '--wb-scrollbar-thumb': 'rgba(255, 255, 255, 0.2)',
+    },
+  },
+  paper: {
+    name: 'Paper (Light)',
+    colors: {
+      '--wb-bg-root': '#fbf9f5',
+      '--wb-bg-panel': '#f0eadd',
+      '--wb-text-main': '#4a3b32',
+      '--wb-text-muted': '#8c7b70',
+      '--wb-primary': '#d97706',
+      '--wb-primary-light': '#b45309',
+      '--wb-primary-hover': 'rgba(217, 119, 6, 0.1)',
+      '--wb-primary-soft': 'rgba(217, 119, 6, 0.08)',
+      '--wb-primary-glow': 'rgba(217, 119, 6, 0.25)',
+      '--wb-input-bg': 'rgba(255, 255, 255, 0.5)',
+      '--wb-input-bg-hover': 'rgba(255, 255, 255, 0.7)',
+      '--wb-input-bg-focus': '#ffffff',
+      '--wb-border-subtle': 'rgba(74, 59, 50, 0.12)',
+      '--wb-border-main': 'rgba(74, 59, 50, 0.18)',
+      '--wb-shadow-main': '0 12px 28px rgba(74, 59, 50, 0.1)',
+      '--wb-scrollbar-thumb': 'rgba(74, 59, 50, 0.2)',
+    },
+  },
+  snow: {
+    name: 'Snow (Light)',
+    colors: {
+      '--wb-bg-root': '#ffffff',
+      '--wb-bg-panel': '#f4f4f5',
+      '--wb-text-main': '#18181b',
+      '--wb-text-muted': '#71717a',
+      '--wb-primary': '#2563eb',
+      '--wb-primary-light': '#3b82f6',
+      '--wb-primary-hover': 'rgba(37, 99, 235, 0.1)',
+      '--wb-primary-soft': 'rgba(37, 99, 235, 0.08)',
+      '--wb-primary-glow': 'rgba(37, 99, 235, 0.25)',
+      '--wb-input-bg': '#ffffff',
+      '--wb-input-bg-hover': '#fafafa',
+      '--wb-input-bg-focus': '#ffffff',
+      '--wb-border-subtle': '#e4e4e7',
+      '--wb-border-main': '#d4d4d8',
+      '--wb-shadow-main': '0 12px 28px rgba(0, 0, 0, 0.08)',
+      '--wb-scrollbar-thumb': '#a1a1aa',
     },
   },
 };
@@ -4581,6 +4643,7 @@ onMounted(() => {
   hostResizeWindow.value.addEventListener('resize', handleFloatingWindowResize);
 
   handleFloatingWindowResize();
+  updateHostPanelTheme();
   void hardRefresh();
 });
 
@@ -4600,6 +4663,24 @@ onUnmounted(() => {
   hostResizeWindow.value?.document.removeEventListener('keydown', onHostKeyDownForWorldbookPicker, true);
   hostResizeWindow.value?.removeEventListener('resize', handleFloatingWindowResize);
   hostResizeWindow.value = null;
+});
+
+function updateHostPanelTheme() {
+  const panel = document.getElementById('wb-assistant-panel');
+  if (!panel) return;
+  const theme = THEMES[currentTheme.value];
+  const colors = theme.colors;
+  
+  panel.style.setProperty('--wb-host-bg', colors['--wb-bg-root']);
+  panel.style.setProperty('--wb-host-header-bg', colors['--wb-bg-panel']);
+  panel.style.setProperty('--wb-host-border', colors['--wb-border-main']);
+  panel.style.setProperty('--wb-host-text', colors['--wb-text-main']);
+  panel.style.setProperty('--wb-host-tool-bg', colors['--wb-input-bg']);
+  panel.style.setProperty('--wb-host-tool-border', colors['--wb-border-subtle']);
+}
+
+watch(currentTheme, () => {
+  updateHostPanelTheme();
 });
 </script>
 
@@ -4725,10 +4806,10 @@ onUnmounted(() => {
   right: 0;
   top: calc(100% + 6px);
   z-index: 10120;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--wb-border-subtle);
   border-radius: 8px;
   background: var(--wb-input-bg-focus);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.72);
+  box-shadow: var(--wb-shadow-main);
   padding: 8px;
   display: grid;
   gap: 8px;
@@ -4751,7 +4832,7 @@ onUnmounted(() => {
 .worldbook-picker-item {
   width: 100%;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--wb-border-subtle);
   background: transparent;
   color: var(--wb-text-main);
   padding: 8px 10px;
@@ -4894,10 +4975,10 @@ onUnmounted(() => {
   right: 0;
   top: calc(100% + 6px);
   z-index: 10130;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--wb-border-subtle);
   border-radius: 8px;
   background: var(--wb-input-bg-focus);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.72);
+  box-shadow: var(--wb-shadow-main);
   padding: 8px;
   display: grid;
   gap: 8px;
@@ -4920,7 +5001,7 @@ onUnmounted(() => {
 .role-picker-item {
   width: 100%;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--wb-border-subtle);
   background: transparent;
   color: var(--wb-text-main);
   padding: 8px 10px;
@@ -4964,7 +5045,7 @@ onUnmounted(() => {
 }
 
 .preset-role-tag {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--wb-border-subtle);
   border-radius: 999px;
   background: var(--wb-bg-panel);
   color: var(--wb-text-main);
@@ -5011,7 +5092,7 @@ onUnmounted(() => {
 .global-mode-item {
   width: 100%;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--wb-border-subtle);
   background: transparent;
   color: var(--wb-text-main);
   padding: 7px 8px;
@@ -5331,7 +5412,7 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 10px;
   align-items: flex-end;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--wb-border-subtle);
   padding-bottom: 12px;
 }
 
@@ -5811,7 +5892,7 @@ onUnmounted(() => {
   gap: 8px;
   align-items: center;
   padding: 8px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--wb-border-subtle);
   background: var(--wb-bg-panel);
   cursor: move;
   user-select: none;

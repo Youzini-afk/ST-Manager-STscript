@@ -45,9 +45,10 @@ function ensurePanelStyle(): void {
   max-width: calc(100vw - 16px);
   max-height: calc(100vh - 16px);
   display: none;
-  border: 1px solid #334155;
+  display: none;
+  border: 1px solid var(--wb-host-border, #334155);
   border-radius: 10px;
-  background: #0b1220;
+  background: var(--wb-host-bg, #0b1220);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   resize: both;
@@ -64,14 +65,15 @@ function ensurePanelStyle(): void {
   align-items: center;
   justify-content: space-between;
   padding: 0 10px 0 12px;
-  background: #111827;
-  border-bottom: 1px solid #334155;
+  padding: 0 10px 0 12px;
+  background: var(--wb-host-header-bg, #111827);
+  border-bottom: 1px solid var(--wb-host-border, #334155);
   cursor: move;
   user-select: none;
 }
 
 #${PANEL_ID} .wb-assistant-header-title {
-  color: #e2e8f0;
+  color: var(--wb-host-text, #e2e8f0);
   font-size: 14px;
   font-weight: 600;
 }
@@ -85,10 +87,10 @@ function ensurePanelStyle(): void {
 #${PANEL_ID} .wb-assistant-tool {
   width: 30px;
   height: 30px;
-  border: 1px solid #475569;
+  border: 1px solid var(--wb-host-tool-border, #475569);
   border-radius: 6px;
-  background: #1f2937;
-  color: #e2e8f0;
+  background: var(--wb-host-tool-bg, #1f2937);
+  color: var(--wb-host-text, #e2e8f0);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -97,20 +99,24 @@ function ensurePanelStyle(): void {
 }
 
 #${PANEL_ID} .wb-assistant-tool:hover {
-  border-color: #22d3ee;
+  border-color: #60a5fa;
+}
+
+#${PANEL_ID} .wb-assistant-theme:hover {
+  border-color: #a78bfa;
 }
 
 #${PANEL_ID} .wb-assistant-save:hover {
-  border-color: #60a5fa;
+  border-color: #34d399;
 }
 
 #${PANEL_ID} .wb-assistant-close {
   width: 30px;
   height: 30px;
-  border: 1px solid #475569;
+  border: 1px solid var(--wb-host-tool-border, #475569);
   border-radius: 6px;
-  background: #1f2937;
-  color: #e2e8f0;
+  background: var(--wb-host-tool-bg, #1f2937);
+  color: var(--wb-host-text, #e2e8f0);
   cursor: pointer;
 }
 
@@ -161,6 +167,7 @@ function ensurePanelElement(): JQuery {
     <div class="wb-assistant-header-title">世界书助手</div>
     <div class="wb-assistant-header-actions">
       <button type="button" class="wb-assistant-tool wb-assistant-refresh" title="刷新">↻</button>
+      <button type="button" class="wb-assistant-tool wb-assistant-theme" title="切换主题">🎨</button>
       <button type="button" class="wb-assistant-tool wb-assistant-save" title="保存">💾</button>
       <button type="button" class="wb-assistant-close" title="关闭">×</button>
     </div>
@@ -177,6 +184,9 @@ function ensurePanelElement(): JQuery {
   });
   $panel.off(`click${EVENT_NS}`, '.wb-assistant-save').on(`click${EVENT_NS}`, '.wb-assistant-save', () => {
     window.dispatchEvent(new Event('wb-helper:save'));
+  });
+  $panel.off(`click${EVENT_NS}`, '.wb-assistant-theme').on(`click${EVENT_NS}`, '.wb-assistant-theme', () => {
+    window.dispatchEvent(new Event('wb-helper:toggle-theme'));
   });
   $panel.off(`click${EVENT_NS}`, '.wb-assistant-close').on(`click${EVENT_NS}`, '.wb-assistant-close', () => {
     hidePanel();
