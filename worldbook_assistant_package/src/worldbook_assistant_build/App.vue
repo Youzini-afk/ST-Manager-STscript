@@ -1048,7 +1048,6 @@ interface PersistedState {
   entry_history: Record<string, Record<string, EntrySnapshot[]>>;
   global_presets: GlobalWorldbookPreset[];
   last_global_preset_id: string;
-  last_global_preset_id: string;
   role_override_baseline: { preset_id: string; worldbooks: string[] } | null;
   theme: ThemeKey;
 }
@@ -4612,7 +4611,6 @@ onUnmounted(() => {
   flex-direction: column;
   padding: 10px;
   gap: 10px;
-  gap: 10px;
   background: var(--wb-bg-root);
   color: var(--wb-text-main);
   font-size: 13px;
@@ -4628,7 +4626,6 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-radius: 12px;
   border-radius: 12px;
   padding: 12px 16px;
   background: var(--wb-bg-panel);
@@ -4663,14 +4660,12 @@ onUnmounted(() => {
   flex-wrap: wrap;
   align-items: center;
   border-radius: 12px;
-  border-radius: 12px;
   padding: 10px 12px;
   background: var(--wb-bg-panel);
 }
 
 .toolbar-label {
   display: inline-flex;
-  align-items: center;
   align-items: center;
   gap: 6px;
   color: var(--wb-text-muted);
@@ -4695,11 +4690,11 @@ onUnmounted(() => {
 .worldbook-picker-trigger {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #334155;
+  border: 1px solid transparent;
   border-radius: 8px;
   padding: 8px 10px;
-  background: #0f172a;
-  color: #f8fafc;
+  background: var(--wb-input-bg);
+  color: var(--wb-text-main);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4708,7 +4703,7 @@ onUnmounted(() => {
 }
 
 .worldbook-picker-trigger:hover {
-  border-color: #38bdf8;
+  border-color: var(--wb-primary-light);
 }
 
 .worldbook-picker-trigger-text {
@@ -4720,7 +4715,7 @@ onUnmounted(() => {
 
 .worldbook-picker-trigger-arrow {
   flex-shrink: 0;
-  color: #94a3b8;
+  color: var(--wb-text-muted);
 }
 
 .worldbook-picker-dropdown {
@@ -4729,10 +4724,10 @@ onUnmounted(() => {
   right: 0;
   top: calc(100% + 6px);
   z-index: 10120;
-  border: 1px solid #334155;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  background: rgba(2, 6, 23, 0.98);
-  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.72);
+  background: var(--wb-input-bg-focus);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.72);
   padding: 8px;
   display: grid;
   gap: 8px;
@@ -4745,9 +4740,9 @@ onUnmounted(() => {
 .worldbook-picker-list {
   max-height: 260px;
   overflow: auto;
-  border: 1px solid #334155;
+  border: none;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.62);
+  background: var(--wb-bg-panel);
   display: flex;
   flex-direction: column;
 }
@@ -4755,9 +4750,9 @@ onUnmounted(() => {
 .worldbook-picker-item {
   width: 100%;
   border: none;
-  border-bottom: 1px solid rgba(51, 65, 85, 0.62);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: transparent;
-  color: #e2e8f0;
+  color: var(--wb-text-main);
   padding: 8px 10px;
   text-align: left;
   cursor: pointer;
@@ -4768,18 +4763,17 @@ onUnmounted(() => {
 }
 
 .worldbook-picker-item:hover {
-  background: rgba(56, 189, 248, 0.15);
+  background: var(--wb-primary-soft);
 }
 
 .worldbook-picker-item.active {
-  background: rgba(59, 130, 246, 0.2);
-  color: #dbeafe;
+  background: var(--wb-primary-soft);
+  color: var(--wb-primary-light);
 }
 
 .wb-bindings {
   border-radius: 12px;
   padding: 12px;
-  display: grid;
   display: grid;
   gap: 8px;
   background: var(--wb-bg-panel);
@@ -4809,7 +4803,7 @@ onUnmounted(() => {
 }
 
 .global-mode-title {
-  color: #93c5fd;
+  color: var(--wb-primary-light);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -4860,11 +4854,11 @@ onUnmounted(() => {
 .role-picker-trigger {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #334155;
+  border: 1px solid transparent;
   border-radius: 8px;
   padding: 8px 10px;
-  background: #0f172a;
-  color: #f8fafc;
+  background: var(--wb-input-bg);
+  color: var(--wb-text-main);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4890,7 +4884,7 @@ onUnmounted(() => {
 
 .role-picker-trigger-arrow {
   flex-shrink: 0;
-  color: #94a3b8;
+  color: var(--wb-text-muted);
 }
 
 .role-picker-dropdown {
@@ -4899,10 +4893,10 @@ onUnmounted(() => {
   right: 0;
   top: calc(100% + 6px);
   z-index: 10130;
-  border: 1px solid #334155;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
-  background: rgba(2, 6, 23, 0.98);
-  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.72);
+  background: var(--wb-input-bg-focus);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.72);
   padding: 8px;
   display: grid;
   gap: 8px;
@@ -4913,9 +4907,9 @@ onUnmounted(() => {
 }
 
 .role-picker-list {
-  border: 1px solid #334155;
+  border: none;
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.62);
+  background: var(--wb-bg-panel);
   max-height: 220px;
   overflow: auto;
   display: flex;
@@ -4925,9 +4919,9 @@ onUnmounted(() => {
 .role-picker-item {
   width: 100%;
   border: none;
-  border-bottom: 1px solid rgba(51, 65, 85, 0.62);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: transparent;
-  color: #e2e8f0;
+  color: var(--wb-text-main);
   padding: 8px 10px;
   display: flex;
   align-items: center;
@@ -4969,10 +4963,10 @@ onUnmounted(() => {
 }
 
 .preset-role-tag {
-  border: 1px solid #475569;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
-  background: rgba(30, 41, 59, 0.72);
-  color: #e2e8f0;
+  background: var(--wb-bg-panel);
+  color: var(--wb-text-main);
   padding: 2px 10px;
   display: inline-flex;
   align-items: center;
@@ -4997,7 +4991,7 @@ onUnmounted(() => {
 .global-mode-column {
   border-radius: 8px;
   padding: 10px;
-  background: rgba(2, 6, 23, 0.3);
+  background: var(--wb-bg-panel);
   display: grid;
   gap: 6px;
   min-height: 168px;
@@ -5005,7 +4999,7 @@ onUnmounted(() => {
 
 .global-mode-list {
   border-radius: 8px;
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--wb-input-bg);
   max-height: 176px;
   min-height: 88px;
   overflow: auto;
@@ -5016,9 +5010,9 @@ onUnmounted(() => {
 .global-mode-item {
   width: 100%;
   border: none;
-  border-bottom: 1px solid rgba(51, 65, 85, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background: transparent;
-  color: #e2e8f0;
+  color: var(--wb-text-main);
   padding: 7px 8px;
   display: flex;
   justify-content: space-between;
@@ -5062,19 +5056,19 @@ onUnmounted(() => {
 }
 
 .history-btn {
-  border-color: #3b82f6;
-  background: rgba(30, 58, 138, 0.25);
+  border-color: var(--wb-primary);
+  background: var(--wb-primary-soft);
 }
 
 .utility-btn {
-  border-color: #0ea5e9;
-  background: rgba(6, 78, 118, 0.25);
+  border-color: var(--wb-primary-light);
+  background: var(--wb-primary-soft);
 }
 
 .utility-btn.active {
-  border-color: #22d3ee;
-  background: rgba(34, 211, 238, 0.16);
-  color: #67e8f9;
+  border-color: var(--wb-primary-light);
+  background: var(--wb-primary-soft);
+  color: var(--wb-primary-light);
 }
 
 .wb-main-layout {
@@ -5103,7 +5097,7 @@ onUnmounted(() => {
 }
 
 .list-summary {
-  color: #94a3b8;
+  color: var(--wb-text-muted);
   font-size: 12px;
   padding: 0 8px;
 }
@@ -5123,7 +5117,7 @@ onUnmounted(() => {
   text-align: left;
   border: none;
   background: transparent;
-  color: #e2e8f0;
+  color: var(--wb-text-main);
   border-radius: 8px;
   padding: 10px 12px 10px 14px;
   cursor: pointer;
@@ -5188,7 +5182,7 @@ onUnmounted(() => {
   border-radius: 999px;
   background: #64748b;
   flex-shrink: 0;
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.85);
+  box-shadow: 0 0 0 2px var(--wb-bg-panel);
 }
 
 .entry-status-dot[data-status='constant'] {
@@ -5229,9 +5223,9 @@ onUnmounted(() => {
   border: none;
   border-radius: 999px;
   padding: 2px 8px;
-  color: #cbd5e1;
+  color: var(--wb-text-muted);
   font-size: 11px;
-  background: rgba(30, 41, 59, 0.5);
+  background: var(--wb-bg-panel);
 }
 
 .entry-chip.uid {
@@ -5266,7 +5260,7 @@ onUnmounted(() => {
 }
 
 .entry-item-preview {
-  color: #94a3b8;
+  color: var(--wb-text-muted);
   font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
@@ -5310,13 +5304,13 @@ onUnmounted(() => {
   bottom: 12px;
   width: 2px;
   border-radius: 999px;
-  background: rgba(100, 116, 139, 0.5);
+  background: var(--wb-primary-hover);
   transition: background-color 0.15s ease;
 }
 
 .wb-resize-handle:hover::before,
 .wb-resize-handle.dragging::before {
-  background: rgba(56, 189, 248, 0.95);
+  background: var(--wb-primary-light);
 }
 
 .editor-center {
@@ -5356,8 +5350,8 @@ onUnmounted(() => {
   border: none;
   border-radius: 999px;
   padding: 2px 8px;
-  color: #94a3b8;
-  background: rgba(30, 41, 59, 0.5);
+  color: var(--wb-text-muted);
+  background: var(--wb-bg-panel);
   white-space: nowrap;
 }
 
@@ -5426,13 +5420,13 @@ onUnmounted(() => {
   border: none;
   border-radius: 8px;
   padding: 10px;
-  background: rgba(0, 0, 0, 0.15);
+  background: var(--wb-input-bg);
 }
 
 .editor-advanced > summary {
   cursor: pointer;
   font-size: 12px;
-  color: #cbd5e1;
+  color: var(--wb-text-muted);
 }
 
 .editor-advanced[open] > summary {
@@ -5459,7 +5453,7 @@ onUnmounted(() => {
 .editor-card h4 {
   margin: 0;
   font-size: 12px;
-  color: #f59e0b;
+  color: var(--wb-primary);
 }
 
 .strategy-switch {
@@ -5470,8 +5464,8 @@ onUnmounted(() => {
 .strategy-pill {
   border: none;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.25);
-  color: #cbd5e1;
+  background: var(--wb-input-bg);
+  color: var(--wb-text-muted);
   padding: 6px 10px;
   font-size: 12px;
   cursor: pointer;
@@ -5638,7 +5632,7 @@ onUnmounted(() => {
 }
 
 .find-active-hit strong {
-  color: #cbd5e1;
+  color: var(--wb-text-main);
   font-size: 12px;
 }
 
@@ -5662,7 +5656,7 @@ onUnmounted(() => {
 }
 
 .exclude-chip {
-  border: 1px solid #475569;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   padding: 1px 8px;
   font-size: 11px;
@@ -5674,7 +5668,7 @@ onUnmounted(() => {
   border: 1px solid #334155;
   border-radius: 8px;
   padding: 6px;
-  background: rgba(15, 23, 42, 0.35);
+  background: var(--wb-bg-panel);
 }
 
 .tool-details > summary {
@@ -5722,9 +5716,9 @@ onUnmounted(() => {
   border: 1px dashed #334155;
   border-radius: 8px;
   padding: 6px;
-  color: #94a3b8;
+  color: var(--wb-text-muted);
   font-size: 11px;
-  background: rgba(15, 23, 42, 0.32);
+  background: var(--wb-bg-panel);
 }
 
 .tool-scroll {
@@ -5801,10 +5795,10 @@ onUnmounted(() => {
   position: fixed;
   max-width: calc(100vw - 16px);
   max-height: min(74vh, 760px);
-  border: 1px solid #334155;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  background: linear-gradient(155deg, rgba(2, 6, 23, 0.95), rgba(15, 23, 42, 0.95));
-  box-shadow: 0 14px 36px rgba(2, 6, 23, 0.7);
+  background: var(--wb-bg-root);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.7);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -5816,8 +5810,8 @@ onUnmounted(() => {
   gap: 8px;
   align-items: center;
   padding: 8px 10px;
-  border-bottom: 1px solid #334155;
-  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--wb-bg-panel);
   cursor: move;
   user-select: none;
   touch-action: none;
@@ -5862,9 +5856,9 @@ onUnmounted(() => {
 }
 
 .btn {
-  border: 1px solid #475569;
-  background: #1e293b;
-  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--wb-bg-panel);
+  color: var(--wb-text-main);
   border-radius: 7px;
   padding: 5px 10px;
   cursor: pointer;
@@ -5880,8 +5874,8 @@ onUnmounted(() => {
 }
 
 .btn.primary {
-  background: #0c4a6e;
-  border-color: #0284c7;
+  background: var(--wb-primary-soft);
+  border-color: var(--wb-primary);
 }
 
 .btn.danger {
@@ -5998,7 +5992,7 @@ onUnmounted(() => {
   padding: 6px;
   display: grid;
   gap: 4px;
-  background: rgba(15, 23, 42, 0.56);
+  background: var(--wb-bg-panel);
 }
 
 .wb-history-version-line {
@@ -6087,7 +6081,7 @@ onUnmounted(() => {
   overflow: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   font-size: 11px;
-  background: rgba(2, 6, 23, 0.9);
+  background: var(--wb-input-bg-focus);
 }
 
 .diff-row {
@@ -6215,7 +6209,7 @@ onUnmounted(() => {
 }
 
 .editor-back-btn:hover {
-  background: rgba(30, 41, 59, 1);
+  background: var(--wb-primary-hover);
 }
 
 @media (max-width: 768px) {
