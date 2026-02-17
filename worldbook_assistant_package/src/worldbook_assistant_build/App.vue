@@ -2,12 +2,38 @@
   <div class="wb-assistant-root">
           <section class="wb-toolbar">
             <label class="toolbar-label">
-              世界书
-              <select v-model="selectedWorldbookName" class="toolbar-select">
-                <option v-for="name in selectableWorldbookNames" :key="name" :value="name">
-                  {{ name }}
-                </option>
-              </select>
+              <span>世界书</span>
+              <div ref="worldbookPickerRef" class="worldbook-picker">
+                <button class="worldbook-picker-trigger" type="button" @click="toggleWorldbookPicker">
+                  <span class="worldbook-picker-trigger-text" :title="selectedWorldbookName || '请选择世界书'">
+                    {{ selectedWorldbookName || '请选择世界书' }}
+                  </span>
+                  <span class="worldbook-picker-trigger-arrow">{{ worldbookPickerOpen ? '▴' : '▾' }}</span>
+                </button>
+                <div v-if="worldbookPickerOpen" class="worldbook-picker-dropdown">
+                  <input
+                    ref="worldbookPickerSearchInputRef"
+                    v-model="worldbookPickerSearchText"
+                    type="text"
+                    class="text-input worldbook-picker-search"
+                    placeholder="搜索世界书..."
+                    @keydown.enter.prevent="filteredSelectableWorldbookNames[0] && selectWorldbookFromPicker(filteredSelectableWorldbookNames[0])"
+                  />
+                  <div class="worldbook-picker-list">
+                    <button
+                      v-for="name in filteredSelectableWorldbookNames"
+                      :key="`worldbook-${name}`"
+                      class="worldbook-picker-item"
+                      :class="{ active: name === selectedWorldbookName }"
+                      type="button"
+                      @click="selectWorldbookFromPicker(name)"
+                    >
+                      {{ name }}
+                    </button>
+                    <div v-if="!filteredSelectableWorldbookNames.length" class="empty-note">没有匹配的世界书</div>
+                  </div>
+                </div>
+              </div>
             </label>
             <button class="btn" type="button" @click="createNewWorldbook">新建</button>
             <button class="btn" type="button" :disabled="!selectedWorldbookName" @click="duplicateWorldbook">
@@ -858,6 +884,10 @@ const positionTypeOptions: PositionType[] = [
 
 const worldbookNames = ref<string[]>([]);
 const selectedWorldbookName = ref('');
+const worldbookPickerOpen = ref(false);
+const worldbookPickerSearchText = ref('');
+const worldbookPickerRef = ref<HTMLElement | null>(null);
+const worldbookPickerSearchInputRef = ref<HTMLInputElement | null>(null);
 const globalWorldbookMode = ref(false);
 const originalEntries = ref<WorldbookEntry[]>([]);
 const draftEntries = ref<WorldbookEntry[]>([]);
@@ -990,6 +1020,14 @@ const selectableWorldbookNames = computed(() => {
     return worldbookNames.value;
   }
   return bindings.global.filter(name => worldbookNames.value.includes(name));
+});
+
+const filteredSelectableWorldbookNames = computed(() => {
+  const keyword = worldbookPickerSearchText.value.trim().toLowerCase();
+  if (!keyword) {
+    return selectableWorldbookNames.value;
+  }
+  return selectableWorldbookNames.value.filter(name => name.toLowerCase().includes(keyword));
 });
 
 const globalAddCandidates = computed(() => {
@@ -1260,6 +1298,7 @@ const selectedTokenEstimate = computed(() => {
 });
 
 watch(selectedWorldbookName, name => {
+  closeWorldbookPicker();
   if (!name) {
     draftEntries.value = [];
     originalEntries.value = [];
@@ -3238,6 +3277,58 @@ async function clearGlobalWorldbooks(): Promise<void> {
   await applyGlobalWorldbooks([], '已清空全局世界书');
 }
 
+function closeWorldbookPicker(): void {
+  worldbookPickerOpen.value = false;
+}
+
+function openWorldbookPicker(): void {
+  worldbookPickerSearchText.value = '';
+  worldbookPickerOpen.value = true;
+  void nextTick(() => {
+    worldbookPickerSearchInputRef.value?.focus();
+  });
+}
+
+function toggleWorldbookPicker(): void {
+  if (worldbookPickerOpen.value) {
+    closeWorldbookPicker();
+    return;
+  }
+  openWorldbookPicker();
+}
+
+function selectWorldbookFromPicker(name: string): void {
+  if (!name) {
+    return;
+  }
+  selectedWorldbookName.value = name;
+  closeWorldbookPicker();
+}
+
+function onHostPointerDownForWorldbookPicker(event: PointerEvent): void {
+  if (!worldbookPickerOpen.value) {
+    return;
+  }
+  const root = worldbookPickerRef.value;
+  const target = event.target as Node | null;
+  if (!root || !target) {
+    closeWorldbookPicker();
+    return;
+  }
+  if (!root.contains(target)) {
+    closeWorldbookPicker();
+  }
+}
+
+function onHostKeyDownForWorldbookPicker(event: KeyboardEvent): void {
+  if (!worldbookPickerOpen.value) {
+    return;
+  }
+  if (event.key === 'Escape') {
+    closeWorldbookPicker();
+  }
+}
+
 async function loadWorldbook(name: string): Promise<void> {
   if (!name) {
     return;
@@ -3680,6 +3771,9 @@ onMounted(() => {
   window.addEventListener('wb-helper:save', onPanelSave);
   window.addEventListener('wb-helper:discard', onPanelDiscard);
   hostResizeWindow.value = resolveHostWindow();
+  const hostDoc = hostResizeWindow.value.document;
+  hostDoc.addEventListener('pointerdown', onHostPointerDownForWorldbookPicker, true);
+  hostDoc.addEventListener('keydown', onHostKeyDownForWorldbookPicker, true);
   hostResizeWindow.value.addEventListener('resize', handleFloatingWindowResize);
 
   handleFloatingWindowResize();
@@ -3697,6 +3791,8 @@ onUnmounted(() => {
   window.removeEventListener('wb-helper:refresh', onPanelRefresh);
   window.removeEventListener('wb-helper:save', onPanelSave);
   window.removeEventListener('wb-helper:discard', onPanelDiscard);
+  hostResizeWindow.value?.document.removeEventListener('pointerdown', onHostPointerDownForWorldbookPicker, true);
+  hostResizeWindow.value?.document.removeEventListener('keydown', onHostKeyDownForWorldbookPicker, true);
   hostResizeWindow.value?.removeEventListener('resize', handleFloatingWindowResize);
   hostResizeWindow.value = null;
 });
@@ -3770,6 +3866,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   color: #cbd5e1;
+  min-width: 320px;
+  flex: 1 1 520px;
 }
 
 .toolbar-select {
@@ -3778,6 +3876,96 @@ onUnmounted(() => {
 
 .toolbar-select.small {
   min-width: 160px;
+}
+
+.worldbook-picker {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 240px;
+}
+
+.worldbook-picker-trigger {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #0f172a;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.worldbook-picker-trigger:hover {
+  border-color: #38bdf8;
+}
+
+.worldbook-picker-trigger-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.worldbook-picker-trigger-arrow {
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.worldbook-picker-dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 10120;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.98);
+  box-shadow: 0 12px 28px rgba(2, 6, 23, 0.72);
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.worldbook-picker-search {
+  width: 100%;
+}
+
+.worldbook-picker-list {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.62);
+  display: flex;
+  flex-direction: column;
+}
+
+.worldbook-picker-item {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.62);
+  background: transparent;
+  color: #e2e8f0;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.worldbook-picker-item:last-child {
+  border-bottom: none;
+}
+
+.worldbook-picker-item:hover {
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.worldbook-picker-item.active {
+  background: rgba(59, 130, 246, 0.2);
+  color: #dbeafe;
 }
 
 .wb-bindings {
