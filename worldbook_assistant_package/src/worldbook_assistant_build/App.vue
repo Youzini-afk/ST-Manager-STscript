@@ -637,13 +637,15 @@
                   v-model="batchExcludeText"
                   type="text"
                   class="text-input"
-                  placeholder="排除项：条目名关键词 / #UID（逗号或换行）"
+                  placeholder="排除项：#UID / 名称 / 内容 / 关键词（逗号或换行）"
                 />
                 <div v-if="activeFindHit" class="find-active-hit">
                   <strong>#{{ activeFindHit.entryUid }} {{ activeFindHit.entryName || `条目 ${activeFindHit.entryUid}` }}</strong>
                   <span>{{ getFindFieldLabel(activeFindHit.field) }} · {{ activeFindHit.preview }}</span>
                 </div>
-                <div class="batch-exclude-note">示例: `#12, name:世界观, 吸血鬼`（命中名称或关键词即排除）</div>
+                <div class="batch-exclude-note">
+                  示例: `#12, name:世界观, content:{{user}}, keys:吸血鬼`（默认命中名称/内容/关键词即排除）
+                </div>
                 <div v-if="batchExcludeTokensPreview.length" class="batch-exclude-chips">
                   <span v-for="token in batchExcludeTokensPreview" :key="token" class="exclude-chip">{{ token }}</span>
                 </div>
@@ -2137,7 +2139,9 @@ function shouldExcludeEntryForBatch(entry: WorldbookEntry, tokens: string[]): bo
     return false;
   }
   const name = entry.name.toLowerCase();
+  const content = entry.content.toLowerCase();
   const keys = entry.strategy.keys.map(key => stringifyKeyword(key).toLowerCase()).join(' ');
+  const secondaryKeys = entry.strategy.keys_secondary.keys.map(key => stringifyKeyword(key).toLowerCase()).join(' ');
 
   for (const token of tokens) {
     const uidMatch = token.match(/^(?:#|uid:)?(\d+)$/);
@@ -2145,8 +2149,40 @@ function shouldExcludeEntryForBatch(entry: WorldbookEntry, tokens: string[]): bo
       return true;
     }
 
-    const plain = token.replace(/^name:/, '').trim();
-    if (plain && (name.includes(plain) || keys.includes(plain))) {
+    const scoped = token.match(/^(name|content|keys|secondary|secondary_keys):(.+)$/);
+    if (scoped) {
+      const scope = scoped[1];
+      const needle = scoped[2].trim();
+      if (!needle) {
+        continue;
+      }
+
+      if (scope === 'name' && name.includes(needle)) {
+        return true;
+      }
+      if (scope === 'content' && content.includes(needle)) {
+        return true;
+      }
+      if (scope === 'keys' && keys.includes(needle)) {
+        return true;
+      }
+      if ((scope === 'secondary' || scope === 'secondary_keys') && secondaryKeys.includes(needle)) {
+        return true;
+      }
+      continue;
+    }
+
+    const plain = token.trim();
+    if (!plain) {
+      continue;
+    }
+
+    if (
+      name.includes(plain) ||
+      content.includes(plain) ||
+      keys.includes(plain) ||
+      secondaryKeys.includes(plain)
+    ) {
       return true;
     }
   }
