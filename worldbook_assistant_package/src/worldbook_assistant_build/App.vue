@@ -3658,7 +3658,12 @@ async function applySelectedGlobalPreset(): Promise<void> {
   if (!preset) {
     return;
   }
-  await applyPresetWorldbooks(preset);
+  const success = await applyPresetWorldbooks(preset);
+  if (success) {
+    updatePersistedState(state => {
+      state.role_override_baseline = null;
+    });
+  }
 }
 
 function getRoleBoundPresetForCurrentContext(): GlobalWorldbookPreset | null {
@@ -3719,12 +3724,10 @@ async function autoApplyRoleBoundPreset(): Promise<void> {
 
 function onGlobalPresetSelectionChanged(): void {
   closeRolePicker();
-  updatePersistedState(state => {
-    state.role_override_baseline = null;
-  });
   if (!selectedGlobalPresetId.value) {
     updatePersistedState(state => {
       state.last_global_preset_id = '';
+      state.role_override_baseline = null;
     });
     if (bindings.global.length) {
       void applyGlobalWorldbooks([], '已切换到默认预设（清空全局世界书）');
