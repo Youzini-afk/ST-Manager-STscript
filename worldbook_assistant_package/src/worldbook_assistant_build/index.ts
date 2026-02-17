@@ -45,7 +45,6 @@ function ensurePanelStyle(): void {
   max-width: calc(100vw - 16px);
   max-height: calc(100vh - 16px);
   display: none;
-  display: none;
   border: 1px solid var(--wb-host-border, #334155);
   border-radius: 10px;
   background: var(--wb-host-bg, #0b1220);
@@ -64,7 +63,6 @@ function ensurePanelStyle(): void {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 10px 0 12px;
   padding: 0 10px 0 12px;
   background: var(--wb-host-header-bg, #111827);
   border-bottom: 1px solid var(--wb-host-border, #334155);
