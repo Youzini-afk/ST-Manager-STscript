@@ -3502,6 +3502,9 @@ async function addGlobalWorldbook(name: string): Promise<void> {
   const success = await applyGlobalWorldbooks([...bindings.global, name], `已添加到全局: ${name}`);
   if (success) {
     globalAddSearchText.value = '';
+    updatePersistedState(state => {
+      state.role_override_baseline = null;
+    });
   }
 }
 
@@ -3509,10 +3512,15 @@ async function removeGlobalWorldbook(name: string): Promise<void> {
   if (!name || !bindings.global.includes(name)) {
     return;
   }
-  await applyGlobalWorldbooks(
+  const success = await applyGlobalWorldbooks(
     bindings.global.filter(item => item !== name),
     `已移出全局: ${name}`,
   );
+  if (success) {
+    updatePersistedState(state => {
+      state.role_override_baseline = null;
+    });
+  }
 }
 
 async function clearGlobalWorldbooks(): Promise<void> {
@@ -3522,7 +3530,12 @@ async function clearGlobalWorldbooks(): Promise<void> {
   if (!confirm('确定清空所有全局世界书吗？')) {
     return;
   }
-  await applyGlobalWorldbooks([], '已清空全局世界书');
+  const success = await applyGlobalWorldbooks([], '已清空全局世界书');
+  if (success) {
+    updatePersistedState(state => {
+      state.role_override_baseline = null;
+    });
+  }
 }
 
 function getCurrentGlobalWorldbookSet(): string[] {
@@ -3706,6 +3719,9 @@ async function autoApplyRoleBoundPreset(): Promise<void> {
 
 function onGlobalPresetSelectionChanged(): void {
   closeRolePicker();
+  updatePersistedState(state => {
+    state.role_override_baseline = null;
+  });
   if (!selectedGlobalPresetId.value) {
     updatePersistedState(state => {
       state.last_global_preset_id = '';
