@@ -1,5 +1,5 @@
 <template>
-  <div class="wb-assistant-root" :style="themeStyles">
+  <div class="wb-assistant-root" :class="{ 'ai-mode-active': aiGeneratorMode }" :style="themeStyles">
     <section class="wb-toolbar">
             <label class="toolbar-label">
               <span>世界书</span>
@@ -5127,6 +5127,11 @@ watch(currentTheme, () => {
   border-radius: 10px;
 }
 
+.wb-assistant-root.ai-mode-active {
+  height: 100vh;
+  overflow: hidden;
+}
+
 .wb-settings-wrapper {
   width: 100%;
 }
@@ -6833,8 +6838,8 @@ watch(currentTheme, () => {
 .ai-generator-panel {
   display: flex;
   gap: 0;
-  height: calc(100vh - 200px);
-  min-height: 400px;
+  flex: 1;
+  min-height: 0;
   border-radius: var(--wb-radius);
   overflow: hidden;
   background: var(--wb-bg-secondary);
