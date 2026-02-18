@@ -326,6 +326,10 @@
                   </div>
                 </div>
                 <div class="ai-chat-input-bar">
+                  <label class="ai-context-toggle" title="开启后，AI 将能看到酒馆的预设、世界书和正则上下文">
+                    <input v-model="aiUseContext" type="checkbox" />
+                    <span>{{ aiUseContext ? '📖 附带上下文' : '🔒 纯净模式' }}</span>
+                  </label>
                   <textarea
                     v-model="aiChatInputText"
                     class="text-input ai-chat-input"
@@ -1347,6 +1351,7 @@ const aiExtractedTags = ref<ExtractedTag[]>([]);
 const aiShowTagReview = ref(false);
 const aiTargetWorldbook = ref('');
 const aiChatInputText = ref('');
+const aiUseContext = ref(true);
 const aiChatMessagesRef = ref<HTMLDivElement | null>(null);
 
 const AI_CHAT_SESSION_LIMIT = 50;
@@ -2694,15 +2699,22 @@ async function aiSendMessage(): Promise<void> {
   );
 
   try {
-    const result = await generate({
+    const generateConfig: Parameters<typeof generate>[0] = {
       generation_id: generationId,
       user_input: text,
       should_stream: true,
       should_silence: true,
-      overrides: {
+    };
+
+    if (!aiUseContext.value) {
+      // 纯净模式: 覆盖 chat_history, 不使用酒馆上下文
+      generateConfig.overrides = {
         chat_history: { prompts: historyPrompts },
-      },
-    });
+      };
+    }
+    // 附带上下文模式: 不设置 chat_history, 让酒馆构建完整 prompt (预设+世界书+正则)
+
+    const result = await generate(generateConfig);
 
     aiAddMessage('assistant', result);
     aiStreamingText.value = '';
@@ -7029,11 +7041,31 @@ watch(currentTheme, () => {
 /* ── Input bar ── */
 .ai-chat-input-bar {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding: 12px 16px;
   border-top: 1px solid var(--wb-border);
   background: var(--wb-bg-main);
   align-items: flex-end;
+}
+
+.ai-context-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78em;
+  color: var(--wb-text-dim);
+  cursor: pointer;
+  user-select: none;
+}
+
+.ai-context-toggle input {
+  margin: 0;
+}
+
+.ai-context-toggle span {
+  white-space: nowrap;
 }
 
 .ai-chat-input {
