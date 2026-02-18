@@ -125,7 +125,16 @@ function ensurePanelStyle(): void {
 #${PANEL_BODY_ID} {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#${PANEL_BODY_ID} > div {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 #${MENU_ID}.active {
