@@ -6833,8 +6833,8 @@ watch(currentTheme, () => {
 .ai-generator-panel {
   display: flex;
   gap: 0;
-  min-height: 460px;
-  max-height: 70vh;
+  height: calc(100vh - 200px);
+  min-height: 400px;
   border-radius: var(--wb-radius);
   overflow: hidden;
   background: var(--wb-bg-secondary);
