@@ -93,6 +93,14 @@
               >
                 📡 激活监控
               </button>
+              <button
+                class="btn history-btn utility-btn"
+                type="button"
+                :class="{ active: aiGeneratorMode }"
+                @click="aiToggleMode"
+              >
+                🤖 AI 生成
+              </button>
             </div>
             <div v-if="globalWorldbookMode" class="global-mode-panel">
               <div class="global-mode-head">
@@ -264,7 +272,129 @@
             </div>
           </section>
 
-          <section ref="mainLayoutRef" class="wb-main-layout" :style="mainLayoutStyle">
+          <!-- ═══ AI Generator Panel ═══ -->
+          <section v-if="aiGeneratorMode" class="ai-generator-panel">
+            <div class="ai-sidebar">
+              <div class="ai-sidebar-head">
+                <span class="ai-sidebar-title">对话列表</span>
+                <button class="btn mini" type="button" @click="aiCreateSession">+ 新建</button>
+              </div>
+              <div class="ai-session-list">
+                <button
+                  v-for="session in aiSessions"
+                  :key="session.id"
+                  class="ai-session-item"
+                  :class="{ active: session.id === aiActiveSession?.id }"
+                  type="button"
+                  @click="aiSwitchSession(session.id)"
+                >
+                  <span class="ai-session-title">{{ session.title }}</span>
+                  <span class="ai-session-meta">{{ session.messages.length }} 条消息</span>
+                  <button
+                    class="ai-session-delete"
+                    type="button"
+                    title="删除对话"
+                    @click.stop="aiDeleteSession(session.id)"
+                  >×</button>
+                </button>
+                <div v-if="!aiSessions.length" class="empty-note">暂无对话，点击上方新建</div>
+              </div>
+            </div>
+            <div class="ai-chat-area">
+              <div v-if="!aiActiveSession" class="ai-chat-empty">
+                <div class="ai-chat-empty-icon">🤖</div>
+                <div class="ai-chat-empty-text">选择或新建一个对话开始生成</div>
+              </div>
+              <template v-else>
+                <div class="ai-chat-messages" ref="aiChatMessagesRef">
+                  <div
+                    v-for="(msg, idx) in aiActiveMessages"
+                    :key="`msg-${idx}`"
+                    class="ai-chat-bubble"
+                    :class="msg.role"
+                  >
+                    <div class="ai-chat-bubble-role">{{ msg.role === 'user' ? '👤 你' : '🤖 AI' }}</div>
+                    <div class="ai-chat-bubble-content">{{ msg.content }}</div>
+                  </div>
+                  <div v-if="aiIsGenerating && aiStreamingText" class="ai-chat-bubble assistant streaming">
+                    <div class="ai-chat-bubble-role">🤖 AI</div>
+                    <div class="ai-chat-bubble-content">{{ aiStreamingText }}<span class="ai-cursor">▌</span></div>
+                  </div>
+                  <div v-if="aiIsGenerating && !aiStreamingText" class="ai-chat-bubble assistant streaming">
+                    <div class="ai-chat-bubble-role">🤖 AI</div>
+                    <div class="ai-chat-bubble-content"><span class="ai-thinking">思考中...</span></div>
+                  </div>
+                </div>
+                <div class="ai-chat-input-bar">
+                  <textarea
+                    v-model="aiChatInputText"
+                    class="text-input ai-chat-input"
+                    placeholder="输入提示词，让 AI 生成世界书条目..."
+                    rows="2"
+                    :disabled="aiIsGenerating"
+                    @keydown.enter.exact.prevent="aiSendMessage"
+                  ></textarea>
+                  <button
+                    v-if="!aiIsGenerating"
+                    class="btn ai-send-btn"
+                    type="button"
+                    :disabled="!aiChatInputText.trim()"
+                    @click="aiSendMessage"
+                  >发送</button>
+                  <button
+                    v-else
+                    class="btn danger ai-stop-btn"
+                    type="button"
+                    @click="aiStopGeneration"
+                  >停止</button>
+                </div>
+              </template>
+            </div>
+          </section>
+
+          <!-- ═══ Tag Review Modal ═══ -->
+          <div v-if="aiShowTagReview" class="ai-tag-review-overlay" @click.self="aiShowTagReview = false">
+            <div class="ai-tag-review-modal">
+              <div class="ai-tag-review-head">
+                <span class="ai-tag-review-title">📋 提取到的条目（{{ aiExtractedTags.length }}）</span>
+                <button class="ai-tag-review-close" type="button" @click="aiShowTagReview = false">×</button>
+              </div>
+              <div class="ai-tag-review-target">
+                <label class="field">
+                  <span>目标世界书</span>
+                  <select v-model="aiTargetWorldbook" class="text-input">
+                    <option value="">请选择目标世界书</option>
+                    <option v-for="name in worldbookNames" :key="`ai-wb-${name}`" :value="name">{{ name }}</option>
+                  </select>
+                </label>
+              </div>
+              <div class="ai-tag-list">
+                <label
+                  v-for="(tag, idx) in aiExtractedTags"
+                  :key="`tag-${idx}`"
+                  class="ai-tag-item"
+                >
+                  <input v-model="tag.selected" type="checkbox" />
+                  <div class="ai-tag-info">
+                    <span class="ai-tag-name">{{ tag.tag }}</span>
+                    <span class="ai-tag-preview">{{ tag.content.slice(0, 120) }}{{ tag.content.length > 120 ? '...' : '' }}</span>
+                  </div>
+                </label>
+              </div>
+              <div class="ai-tag-review-actions">
+                <button class="btn" type="button" @click="aiExtractedTags.forEach(t => t.selected = true)">全选</button>
+                <button class="btn" type="button" @click="aiExtractedTags.forEach(t => t.selected = false)">全不选</button>
+                <button
+                  class="btn primary"
+                  type="button"
+                  :disabled="!aiTargetWorldbook || !aiExtractedTags.some(t => t.selected)"
+                  @click="aiCreateSelectedEntries"
+                >创建选中条目（{{ aiExtractedTags.filter(t => t.selected).length }}）</button>
+              </div>
+            </div>
+          </div>
+
+          <section v-show="!aiGeneratorMode" ref="mainLayoutRef" class="wb-main-layout" :style="mainLayoutStyle">
             <aside v-show="!showMobileEditor" class="wb-entry-list">
               <div class="list-search">
                 <input v-model="searchText" type="text" class="text-input" placeholder="搜索名称 / 内容 / 关键词" />
@@ -1110,6 +1240,30 @@ interface GlobalWorldbookPreset {
   updated_at: number;
 }
 
+interface AIChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+}
+
+interface AIChatSession {
+  id: string;
+  title: string;
+  createdAt: number;
+  messages: AIChatMessage[];
+}
+
+interface AIGeneratorState {
+  sessions: AIChatSession[];
+  activeSessionId: string | null;
+}
+
+interface ExtractedTag {
+  tag: string;
+  content: string;
+  selected: boolean;
+}
+
 interface PersistedState {
   last_worldbook: string;
   history: Record<string, WorldbookSnapshot[]>;
@@ -1118,6 +1272,7 @@ interface PersistedState {
   last_global_preset_id: string;
   role_override_baseline: { preset_id: string; worldbooks: string[] } | null;
   theme: ThemeKey;
+  ai_chat: AIGeneratorState;
 }
 
 interface ActivationLog {
@@ -1184,6 +1339,18 @@ const rolePickerSearchInputRef = ref<HTMLInputElement | null>(null);
 const currentTheme = ref<ThemeKey>('ocean');
 const themePickerOpen = ref(false);
 const globalWorldbookMode = ref(false);
+const aiGeneratorMode = ref(false);
+const aiIsGenerating = ref(false);
+const aiCurrentGenerationId = ref<string | null>(null);
+const aiStreamingText = ref('');
+const aiExtractedTags = ref<ExtractedTag[]>([]);
+const aiShowTagReview = ref(false);
+const aiTargetWorldbook = ref('');
+const aiChatInputText = ref('');
+const aiChatMessagesRef = ref<HTMLDivElement | null>(null);
+
+const AI_CHAT_SESSION_LIMIT = 50;
+const AI_CHAT_MESSAGE_LIMIT = 200;
 const selectedGlobalPresetId = ref('');
 const currentRoleContext = ref<PresetRoleBinding | null>(null);
 const roleBindingSourceCandidates = ref<PresetRoleBinding[]>([]);
@@ -2238,6 +2405,8 @@ function createDefaultPersistedState(): PersistedState {
     global_presets: [],
     last_global_preset_id: '',
     role_override_baseline: null,
+    theme: 'ocean',
+    ai_chat: { sessions: [], activeSessionId: null },
   };
 }
 
@@ -2340,6 +2509,38 @@ function normalizePersistedState(input: unknown): PersistedState {
     };
   }
 
+  const aiChatRaw = asRecord(root.ai_chat);
+  const aiChat: AIGeneratorState = { sessions: [], activeSessionId: null };
+  if (aiChatRaw) {
+    aiChat.activeSessionId = toStringSafe(aiChatRaw.activeSessionId) || null;
+    if (Array.isArray(aiChatRaw.sessions)) {
+      aiChat.sessions = aiChatRaw.sessions
+        .map((s: unknown) => {
+          const sr = asRecord(s);
+          if (!sr) return null;
+          const msgs = Array.isArray(sr.messages)
+            ? sr.messages.map((m: unknown) => {
+                const mr = asRecord(m);
+                if (!mr) return null;
+                return {
+                  role: mr.role === 'assistant' ? 'assistant' : 'user',
+                  content: toStringSafe(mr.content),
+                  timestamp: toNumberSafe(mr.timestamp, Date.now()),
+                } satisfies AIChatMessage;
+              }).filter((m): m is AIChatMessage => m !== null)
+            : [];
+          return {
+            id: toStringSafe(sr.id, createId('ai-chat')),
+            title: toStringSafe(sr.title, '新对话'),
+            createdAt: toNumberSafe(sr.createdAt, Date.now()),
+            messages: msgs.slice(0, AI_CHAT_MESSAGE_LIMIT),
+          } satisfies AIChatSession;
+        })
+        .filter((s): s is AIChatSession => s !== null)
+        .slice(0, AI_CHAT_SESSION_LIMIT);
+    }
+  }
+
   return {
     last_worldbook: toStringSafe(root.last_worldbook),
     history,
@@ -2348,6 +2549,7 @@ function normalizePersistedState(input: unknown): PersistedState {
     last_global_preset_id: toStringSafe(root.last_global_preset_id),
     role_override_baseline: roleOverrideBaseline,
     theme: (toStringSafe(root.theme) as ThemeKey) || 'ocean',
+    ai_chat: aiChat,
   };
 }
 
@@ -2382,6 +2584,203 @@ function updatePersistedState(mutator: (state: PersistedState) => void): void {
   const state = readPersistedState();
   mutator(state);
   writePersistedState(state);
+}
+
+// ── AI Chat: computed ──────────────────────────────────────────────
+const aiSessions = computed(() => persistedState.value.ai_chat.sessions);
+
+const aiActiveSession = computed((): AIChatSession | null => {
+  const id = persistedState.value.ai_chat.activeSessionId;
+  if (!id) return null;
+  return aiSessions.value.find(s => s.id === id) ?? null;
+});
+
+const aiActiveMessages = computed((): AIChatMessage[] => aiActiveSession.value?.messages ?? []);
+
+// ── AI Chat: CRUD ──────────────────────────────────────────────────
+function aiCreateSession(): void {
+  const id = createId('ai-chat');
+  const session: AIChatSession = {
+    id,
+    title: `对话 ${aiSessions.value.length + 1}`,
+    createdAt: Date.now(),
+    messages: [],
+  };
+  updatePersistedState(state => {
+    state.ai_chat.sessions.unshift(session);
+    state.ai_chat.activeSessionId = id;
+  });
+  setStatus('已创建新对话');
+}
+
+function aiDeleteSession(id: string): void {
+  updatePersistedState(state => {
+    state.ai_chat.sessions = state.ai_chat.sessions.filter(s => s.id !== id);
+    if (state.ai_chat.activeSessionId === id) {
+      state.ai_chat.activeSessionId = state.ai_chat.sessions[0]?.id ?? null;
+    }
+  });
+  setStatus('已删除对话');
+}
+
+function aiSwitchSession(id: string): void {
+  updatePersistedState(state => {
+    state.ai_chat.activeSessionId = id;
+  });
+}
+
+function aiRenameSession(id: string, title: string): void {
+  updatePersistedState(state => {
+    const session = state.ai_chat.sessions.find(s => s.id === id);
+    if (session) {
+      session.title = title.trim() || session.title;
+    }
+  });
+}
+
+function aiAddMessage(role: 'user' | 'assistant', content: string): void {
+  const sessionId = persistedState.value.ai_chat.activeSessionId;
+  if (!sessionId) return;
+  updatePersistedState(state => {
+    const session = state.ai_chat.sessions.find(s => s.id === sessionId);
+    if (session) {
+      session.messages.push({ role, content, timestamp: Date.now() });
+      if (session.messages.length > AI_CHAT_MESSAGE_LIMIT) {
+        session.messages = session.messages.slice(-AI_CHAT_MESSAGE_LIMIT);
+      }
+    }
+  });
+}
+
+// ── AI Chat: generate ──────────────────────────────────────────────
+let aiStreamSubscription: { stop: () => void } | null = null;
+
+async function aiSendMessage(): Promise<void> {
+  const text = aiChatInputText.value.trim();
+  if (!text || aiIsGenerating.value) return;
+
+  const sessionId = persistedState.value.ai_chat.activeSessionId;
+  if (!sessionId) {
+    aiCreateSession();
+  }
+
+  aiChatInputText.value = '';
+  aiAddMessage('user', text);
+
+  const session = persistedState.value.ai_chat.sessions.find(
+    s => s.id === persistedState.value.ai_chat.activeSessionId
+  );
+  if (!session) return;
+
+  // Build prompts from session history (excluding the user message we just added since generate will use user_input)
+  const historyPrompts: RolePrompt[] = session.messages.slice(0, -1).map(m => ({
+    role: m.role,
+    content: m.content,
+  }));
+
+  const generationId = createId('ai-gen');
+  aiCurrentGenerationId.value = generationId;
+  aiIsGenerating.value = true;
+  aiStreamingText.value = '';
+
+  // Subscribe to streaming events
+  aiStreamSubscription = eventOn(
+    iframe_events.STREAM_TOKEN_RECEIVED_FULLY,
+    (fullText: string, genId: string) => {
+      if (genId === generationId) {
+        aiStreamingText.value = fullText;
+      }
+    }
+  );
+
+  try {
+    const result = await generate({
+      generation_id: generationId,
+      user_input: text,
+      should_stream: true,
+      should_silence: true,
+      overrides: {
+        chat_history: { prompts: historyPrompts },
+      },
+    });
+
+    aiAddMessage('assistant', result);
+    aiStreamingText.value = '';
+
+    // Auto-extract tags
+    const tags = aiExtractTags(result);
+    if (tags.length > 0) {
+      aiExtractedTags.value = tags;
+      aiShowTagReview.value = true;
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    toastr.error(`AI 生成失败: ${message}`);
+    setStatus(`AI 生成失败: ${message}`);
+  } finally {
+    aiIsGenerating.value = false;
+    aiCurrentGenerationId.value = null;
+    aiStreamSubscription?.stop();
+    aiStreamSubscription = null;
+  }
+}
+
+function aiStopGeneration(): void {
+  if (aiCurrentGenerationId.value) {
+    stopGenerationById(aiCurrentGenerationId.value);
+  }
+}
+
+// ── AI Chat: tag extraction ────────────────────────────────────────
+function aiExtractTags(text: string): ExtractedTag[] {
+  const regex = /<([^/<>\s]+)>([\s\S]*?)<\/\1>/g;
+  const results: ExtractedTag[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(text)) !== null) {
+    results.push({
+      tag: match[1],
+      content: match[0],
+      selected: true,
+    });
+  }
+  return results;
+}
+
+async function aiCreateSelectedEntries(): Promise<void> {
+  const selected = aiExtractedTags.value.filter(t => t.selected);
+  if (selected.length === 0) {
+    toastr.warning('请至少勾选一个条目');
+    return;
+  }
+
+  const targetName = aiTargetWorldbook.value;
+  if (!targetName) {
+    toastr.warning('请选择目标世界书');
+    return;
+  }
+
+  try {
+    const newEntries = selected.map(t => ({
+      name: t.tag,
+      content: t.content,
+    }));
+
+    await createWorldbookEntries(targetName, newEntries);
+    toastr.success(`已创建 ${selected.length} 个条目到 "${targetName}"`);
+    setStatus(`已创建 ${selected.length} 个条目到 "${targetName}"`);
+    aiShowTagReview.value = false;
+    aiExtractedTags.value = [];
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    toastr.error(`创建条目失败: ${message}`);
+  }
+}
+
+function aiToggleMode(): void {
+  aiGeneratorMode.value = !aiGeneratorMode.value;
+  if (aiGeneratorMode.value) {
+    globalWorldbookMode.value = false;
+  }
 }
 
 function setStatus(message: string): void {
@@ -3649,6 +4048,7 @@ function trySelectWorldbookByContext(options: { preferWhenEmptyOnly?: boolean; f
 function toggleGlobalMode(): void {
   globalWorldbookMode.value = !globalWorldbookMode.value;
   if (globalWorldbookMode.value) {
+    aiGeneratorMode.value = false;
     ensureSelectionForGlobalMode();
     setStatus('已切换到全局世界书模式');
     return;
@@ -6427,4 +6827,355 @@ watch(currentTheme, () => {
   outline: none !important;
   box-shadow: 0 0 0 3px var(--wb-primary-soft) !important;
 }
+/* ═════════════════════════════════════════════════
+   AI Generator Panel
+   ═════════════════════════════════════════════════ */
+.ai-generator-panel {
+  display: flex;
+  gap: 0;
+  height: 100%;
+  min-height: 400px;
+  border-radius: var(--wb-radius);
+  overflow: hidden;
+  background: var(--wb-bg-secondary);
+}
+
+/* ── Sidebar ── */
+.ai-sidebar {
+  width: 220px;
+  min-width: 180px;
+  border-right: 1px solid var(--wb-border);
+  display: flex;
+  flex-direction: column;
+  background: var(--wb-bg-main);
+}
+
+.ai-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--wb-border);
+}
+
+.ai-sidebar-title {
+  font-weight: 600;
+  font-size: 0.9em;
+  color: var(--wb-text-main);
+}
+
+.ai-session-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.ai-session-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 2px;
+  border: none;
+  border-radius: var(--wb-radius-sm, 6px);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.ai-session-item:hover {
+  background: var(--wb-bg-highlight);
+}
+
+.ai-session-item.active {
+  background: var(--wb-primary-soft);
+}
+
+.ai-session-title {
+  flex: 1;
+  font-size: 0.85em;
+  color: var(--wb-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-session-meta {
+  font-size: 0.72em;
+  color: var(--wb-text-dim);
+  width: 100%;
+  margin-top: 2px;
+}
+
+.ai-session-delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--wb-text-dim);
+  font-size: 1em;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.ai-session-item:hover .ai-session-delete {
+  opacity: 1;
+}
+
+.ai-session-delete:hover {
+  background: var(--wb-danger, #e74c3c);
+  color: #fff;
+}
+
+/* ── Chat Area ── */
+.ai-chat-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ai-chat-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--wb-text-dim);
+}
+
+.ai-chat-empty-icon {
+  font-size: 3em;
+  opacity: 0.5;
+}
+
+.ai-chat-empty-text {
+  font-size: 0.95em;
+}
+
+.ai-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── Chat bubbles ── */
+.ai-chat-bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ai-chat-bubble.user {
+  align-self: flex-end;
+  background: var(--wb-primary-soft);
+  border-bottom-right-radius: 4px;
+}
+
+.ai-chat-bubble.assistant {
+  align-self: flex-start;
+  background: var(--wb-bg-main);
+  border: 1px solid var(--wb-border);
+  border-bottom-left-radius: 4px;
+}
+
+.ai-chat-bubble-role {
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--wb-text-dim);
+  margin-bottom: 4px;
+}
+
+.ai-chat-bubble-content {
+  font-size: 0.88em;
+  color: var(--wb-text-main);
+}
+
+.ai-cursor {
+  animation: ai-blink 0.7s infinite;
+  color: var(--wb-primary);
+}
+
+@keyframes ai-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.ai-thinking {
+  color: var(--wb-text-dim);
+  font-style: italic;
+}
+
+/* ── Input bar ── */
+.ai-chat-input-bar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--wb-border);
+  background: var(--wb-bg-main);
+  align-items: flex-end;
+}
+
+.ai-chat-input {
+  flex: 1;
+  resize: vertical;
+  min-height: 40px;
+  max-height: 140px;
+  font-size: 0.88em;
+}
+
+.ai-send-btn,
+.ai-stop-btn {
+  min-width: 64px;
+  height: 40px;
+}
+
+/* ═════════════════════════════════════════════════
+   Tag Review Modal
+   ═════════════════════════════════════════════════ */
+.ai-tag-review-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-tag-review-modal {
+  background: var(--wb-bg-main);
+  border-radius: var(--wb-radius);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  width: 580px;
+  max-width: 92vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ai-tag-review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--wb-border);
+}
+
+.ai-tag-review-title {
+  font-weight: 600;
+  font-size: 1em;
+  color: var(--wb-text-main);
+}
+
+.ai-tag-review-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--wb-text-dim);
+  font-size: 1.2em;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-tag-review-close:hover {
+  background: var(--wb-bg-highlight);
+}
+
+.ai-tag-review-target {
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--wb-border);
+}
+
+.ai-tag-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 18px;
+}
+
+.ai-tag-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--wb-border);
+  cursor: pointer;
+}
+
+.ai-tag-item:last-child {
+  border-bottom: none;
+}
+
+.ai-tag-item input[type="checkbox"] {
+  margin-top: 3px;
+}
+
+.ai-tag-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ai-tag-name {
+  font-weight: 600;
+  font-size: 0.9em;
+  color: var(--wb-primary);
+}
+
+.ai-tag-preview {
+  font-size: 0.8em;
+  color: var(--wb-text-dim);
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.ai-tag-review-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--wb-border);
+  justify-content: flex-end;
+}
+
+.btn.primary {
+  background: var(--wb-primary);
+  color: #fff;
+  border-color: var(--wb-primary);
+}
+
+.btn.primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn.primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 </style>
+
