@@ -5113,7 +5113,7 @@ watch(currentTheme, () => {
 
 <style scoped>
 .wb-assistant-root {
-  height: auto;
+  height: 100%;
   width: 100%;
   box-sizing: border-box;
   display: flex;
@@ -5125,6 +5125,7 @@ watch(currentTheme, () => {
   font-size: 13px;
   line-height: 1.35;
   border-radius: 10px;
+  overflow: hidden;
 }
 
 
@@ -5582,8 +5583,8 @@ watch(currentTheme, () => {
 }
 
 .wb-main-layout {
-  min-height: 460px;
-  max-height: 70vh;
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 320px 10px minmax(0, 1fr);
   gap: 0;
@@ -6834,8 +6835,8 @@ watch(currentTheme, () => {
 .ai-generator-panel {
   display: flex;
   gap: 0;
-  min-height: 460px;
-  max-height: 70vh;
+  flex: 1;
+  min-height: 0;
   border-radius: var(--wb-radius);
   overflow: hidden;
   background: var(--wb-bg-secondary);
