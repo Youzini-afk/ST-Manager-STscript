@@ -232,20 +232,20 @@
         </div>
 
         <!-- Tab Bar -->
-        <nav class="mobile-tab-bar">
-          <button :class="{ active: mobileTab === 'list' }" @click="mobileTab = 'list'">
-            <span class="tab-icon">📋</span><span class="tab-label">列表</span>
+        <div class="mobile-tab-bar" style="position:fixed;bottom:0;left:0;right:0;z-index:10100;display:flex !important;height:52px;background:#1e293b;border-top:1px solid #334155;">
+          <button :class="{ active: mobileTab === 'list' }" @click="mobileTab = 'list'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+            <span style="font-size:20px;">📋</span><span>列表</span>
           </button>
-          <button :class="{ active: mobileTab === 'edit' }" @click="mobileTab = 'edit'">
-            <span class="tab-icon">✏️</span><span class="tab-label">编辑</span>
+          <button :class="{ active: mobileTab === 'edit' }" @click="mobileTab = 'edit'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+            <span style="font-size:20px;">✏️</span><span>编辑</span>
           </button>
-          <button :class="{ active: mobileTab === 'settings' }" @click="mobileTab = 'settings'">
-            <span class="tab-icon">⚙️</span><span class="tab-label">设置</span>
+          <button :class="{ active: mobileTab === 'settings' }" @click="mobileTab = 'settings'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+            <span style="font-size:20px;">⚙️</span><span>设置</span>
           </button>
-          <button :class="{ active: mobileTab === 'ai' }" @click="mobileTab = 'ai'">
-            <span class="tab-icon">🤖</span><span class="tab-label">AI</span>
+          <button :class="{ active: mobileTab === 'ai' }" @click="mobileTab = 'ai'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+            <span style="font-size:20px;">🤖</span><span>AI</span>
           </button>
-        </nav>
+        </div>
       </div>
     </template>
 
