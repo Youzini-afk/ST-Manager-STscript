@@ -54,6 +54,42 @@
               <span v-for="name in bindings.charAdditional" :key="`bca-m-${name}`" class="binding-chip char" :title="name">{{ name }}</span>
               <span v-if="bindings.chat" :key="`bch-m-${bindings.chat}`" class="binding-chip chat" :title="bindings.chat">{{ bindings.chat }}</span>
             </div>
+            <!-- Global Mode Panel (mobile) -->
+            <div v-if="globalWorldbookMode" style="border:1px solid var(--wb-border-subtle);border-radius:8px;padding:10px;margin-bottom:8px;background:var(--wb-bg-card);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-weight:600;font-size:13px;">🌐 全局世界书（{{ bindings.global.length }}）</span>
+                <button class="btn mini danger" type="button" :disabled="!bindings.global.length" @click="clearGlobalWorldbooks" style="font-size:11px;">清空</button>
+              </div>
+              <label class="field" style="margin-bottom:6px;">
+                <span style="font-size:12px;">预设（切换即应用）</span>
+                <select v-model="selectedGlobalPresetId" class="text-input" @change="onGlobalPresetSelectionChanged" style="font-size:12px;">
+                  <option value="">默认预设（清空全局世界书）</option>
+                  <option v-for="preset in globalWorldbookPresets" :key="preset.id" :value="preset.id">
+                    {{ preset.name }}（{{ preset.worldbooks.length }}）
+                  </option>
+                </select>
+              </label>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+                <button class="btn mini" type="button" :disabled="!bindings.global.length" @click="saveCurrentAsGlobalPreset" style="font-size:11px;">保存组合</button>
+                <button class="btn mini" type="button" :disabled="!selectedGlobalPreset" @click="overwriteSelectedGlobalPreset" style="font-size:11px;">覆盖预设</button>
+                <button class="btn mini danger" type="button" :disabled="!selectedGlobalPreset" @click="deleteSelectedGlobalPreset" style="font-size:11px;">删除预设</button>
+              </div>
+              <label class="field" style="margin-bottom:6px;">
+                <span style="font-size:12px;">搜索并添加</span>
+                <input v-model="globalAddSearchText" type="text" class="text-input" placeholder="搜索世界书..." @keydown.enter.prevent="addFirstGlobalCandidate" style="font-size:12px;" />
+              </label>
+              <div v-if="globalAddCandidates.length" style="max-height:120px;overflow-y:auto;margin-bottom:6px;">
+                <button v-for="name in globalAddCandidates" :key="`m-add-${name}`" type="button" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:6px 8px;border:none;background:var(--wb-input-bg);border-radius:4px;color:var(--wb-text-main);font-size:12px;margin-bottom:2px;cursor:pointer;" @click="addGlobalWorldbook(name)">
+                  <span>{{ name }}</span><span style="color:#22c55e;">+ 添加</span>
+                </button>
+              </div>
+              <div v-if="filteredGlobalWorldbooks.length" style="font-size:12px;margin-bottom:4px;opacity:0.7;">已启用：</div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                <button v-for="name in filteredGlobalWorldbooks" :key="`m-gl-${name}`" type="button" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border:1px solid var(--wb-border-subtle);border-radius:4px;background:var(--wb-input-bg);color:var(--wb-text-main);font-size:11px;cursor:pointer;" @click="removeGlobalWorldbook(name)">
+                  {{ name }} <span style="color:#ef4444;">×</span>
+                </button>
+              </div>
+            </div>
             <div class="mobile-entry-list">
               <button
                 v-for="entry in filteredEntries"
