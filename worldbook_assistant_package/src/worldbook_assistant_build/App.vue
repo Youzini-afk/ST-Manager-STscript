@@ -189,7 +189,7 @@
                   style="min-height: calc(100vh - 500px);"
                 ></textarea>
                 <div class="content-resize-handle" @pointerdown="startContentResize">
-                  <span class="content-resize-grip">⋯</span>
+                  <span class="content-resize-grip">━━━</span>
                 </div>
               </section>
             </template>
@@ -6474,20 +6474,18 @@ watch(currentTheme, () => {
   display: none;
   align-items: center;
   justify-content: center;
-  height: 18px;
+  height: 22px;
   cursor: ns-resize;
   background: var(--wb-bg-panel);
-  border: 1px solid var(--wb-border);
-  border-top: none;
-  border-radius: 0 0 6px 6px;
+  border-radius: 0 0 8px 8px;
   touch-action: none;
   user-select: none;
 }
 
 .content-resize-grip {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--wb-text-dim);
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   line-height: 1;
 }
 
@@ -8111,8 +8109,6 @@ watch(currentTheme, () => {
     height: 22px;
     cursor: ns-resize;
     background: var(--wb-bg-panel);
-    border: 1px solid var(--wb-border);
-    border-bottom: none;
     border-radius: 8px 8px 0 0;
     touch-action: none;
     user-select: none;
