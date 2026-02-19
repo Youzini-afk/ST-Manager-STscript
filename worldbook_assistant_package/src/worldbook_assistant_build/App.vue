@@ -6947,11 +6947,12 @@ watch(currentTheme, () => {
   justify-content: center;
   z-index: 10020;
   padding: 14px;
+  box-sizing: border-box;
 }
 
 .wb-history-modal {
   width: min(1260px, 100%);
-  height: min(88vh, 940px);
+  max-height: min(88vh, 940px);
   border: 1px solid var(--wb-border-main);
   border-radius: 12px;
   background: var(--wb-bg-root);
@@ -6959,6 +6960,7 @@ watch(currentTheme, () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .wb-history-modal-header {
@@ -7168,12 +7170,17 @@ watch(currentTheme, () => {
   .wb-history-versions {
     border-right: none;
     border-bottom: 1px solid var(--wb-border-main);
-    max-height: 240px;
+    max-height: 160px;
+  }
+
+  .wb-modal-backdrop {
+    padding: 4px;
   }
 
   .wb-history-modal {
     width: 100%;
-    height: 95vh;
+    max-height: calc(100vh - 8px);
+    height: auto;
     border-radius: 8px;
   }
 
