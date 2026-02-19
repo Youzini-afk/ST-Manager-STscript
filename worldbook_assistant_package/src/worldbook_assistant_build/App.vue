@@ -252,16 +252,16 @@
       </div>
       <!-- Tab Bar: bottom, direct child of wb-assistant-root via fragment -->
       <div style="display:flex !important;flex-shrink:0;height:52px;background:#1e293b;border-top:1px solid #334155;z-index:99999;">
-        <button :class="{ active: mobileTab === 'list' }" @click="mobileTab = 'list'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+        <button @click="mobileTab = 'list'" :style="{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',border:'none',borderTop: mobileTab==='list' ? '2px solid #60a5fa' : '2px solid transparent',background:'transparent',color: mobileTab==='list' ? '#e2e8f0' : '#94a3b8',fontSize:'10px',padding:'4px 0',gap:'2px' }">
           <span style="font-size:20px;">📋</span><span>列表</span>
         </button>
-        <button :class="{ active: mobileTab === 'edit' }" @click="mobileTab = 'edit'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+        <button @click="mobileTab = 'edit'" :style="{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',border:'none',borderTop: mobileTab==='edit' ? '2px solid #60a5fa' : '2px solid transparent',background:'transparent',color: mobileTab==='edit' ? '#e2e8f0' : '#94a3b8',fontSize:'10px',padding:'4px 0',gap:'2px' }">
           <span style="font-size:20px;">✏️</span><span>编辑</span>
         </button>
-        <button :class="{ active: mobileTab === 'settings' }" @click="mobileTab = 'settings'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+        <button @click="mobileTab = 'settings'" :style="{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',border:'none',borderTop: mobileTab==='settings' ? '2px solid #60a5fa' : '2px solid transparent',background:'transparent',color: mobileTab==='settings' ? '#e2e8f0' : '#94a3b8',fontSize:'10px',padding:'4px 0',gap:'2px' }">
           <span style="font-size:20px;">⚙️</span><span>设置</span>
         </button>
-        <button :class="{ active: mobileTab === 'ai' }" @click="mobileTab = 'ai'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+        <button @click="mobileTab = 'ai'" :style="{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',border:'none',borderTop: mobileTab==='ai' ? '2px solid #60a5fa' : '2px solid transparent',background:'transparent',color: mobileTab==='ai' ? '#e2e8f0' : '#94a3b8',fontSize:'10px',padding:'4px 0',gap:'2px' }">
           <span style="font-size:20px;">🤖</span><span>AI</span>
         </button>
       </div>
