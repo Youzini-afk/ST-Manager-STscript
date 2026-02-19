@@ -1677,12 +1677,16 @@ const editorSideWidth = ref(360);
 const paneResizeState = ref<PaneResizeState | null>(null);
 const hostResizeWindow = ref<Window | null>(null);
 const _hostWin = typeof window !== 'undefined' ? (window.parent || window) : null;
-const mobileMediaQuery = _hostWin ? _hostWin.matchMedia('(max-width: 768px)') : null;
-const isMobileFlag = ref(mobileMediaQuery?.matches ?? false);
-if (mobileMediaQuery) {
-  mobileMediaQuery.addEventListener('change', (e) => { isMobileFlag.value = e.matches; });
-}
-const isMobile = computed(() => isMobileFlag.value);
+const _isMobileDevice = (() => {
+  if (!_hostWin) return false;
+  // Use screen dimensions (actual device size, not affected by viewport meta tag)
+  const minDim = Math.min(_hostWin.screen.width, _hostWin.screen.height);
+  if (minDim <= 768) return true;
+  // Touch-capable device with medium screen (tablet)
+  if (_hostWin.navigator?.maxTouchPoints > 0 && minDim <= 1024) return true;
+  return false;
+})();
+const isMobile = computed(() => _isMobileDevice);
 const showMobileEditor = computed(() => isMobile.value && selectedEntryUid.value !== null);
 const mobileTab = ref<'list' | 'edit' | 'settings' | 'ai'>('list');
 
