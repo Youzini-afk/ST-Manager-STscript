@@ -1,28 +1,8 @@
 <template>
-  <div class="wb-assistant-root" :style="themeStyles">
-
-    <!-- DEBUG BANNER - REMOVE AFTER DEBUGGING -->
-    <div style="background:#dc2626;color:#fff;padding:6px 10px;font-size:11px;font-family:monospace;word-break:break-all;flex-shrink:0;z-index:99999;">
-      isMobile={{ isMobile }} | {{ _mobileDebugInfo }}
-    </div>
+  <div ref="rootRef" class="wb-assistant-root" :style="themeStyles">
 
     <!-- ═══ Mobile Tab View ═══ -->
     <template v-if="isMobile">
-      <!-- Tab Bar: AT TOP for testing -->
-      <div style="display:flex !important;flex-shrink:0;height:52px;background:#1e293b;border-top:1px solid #334155;z-index:99999;">
-        <button :class="{ active: mobileTab === 'list' }" @click="mobileTab = 'list'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
-          <span style="font-size:20px;">📋</span><span>列表</span>
-        </button>
-        <button :class="{ active: mobileTab === 'edit' }" @click="mobileTab = 'edit'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
-          <span style="font-size:20px;">✏️</span><span>编辑</span>
-        </button>
-        <button :class="{ active: mobileTab === 'settings' }" @click="mobileTab = 'settings'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
-          <span style="font-size:20px;">⚙️</span><span>设置</span>
-        </button>
-        <button :class="{ active: mobileTab === 'ai' }" @click="mobileTab = 'ai'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
-          <span style="font-size:20px;">🤖</span><span>AI</span>
-        </button>
-      </div>
       <div class="mobile-tab-view">
         <div class="mobile-tab-content">
 
@@ -250,6 +230,21 @@
           </div>
 
         </div>
+      </div>
+      <!-- Tab Bar: bottom, direct child of wb-assistant-root via fragment -->
+      <div style="display:flex !important;flex-shrink:0;height:52px;background:#1e293b;border-top:1px solid #334155;z-index:99999;">
+        <button :class="{ active: mobileTab === 'list' }" @click="mobileTab = 'list'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+          <span style="font-size:20px;">📋</span><span>列表</span>
+        </button>
+        <button :class="{ active: mobileTab === 'edit' }" @click="mobileTab = 'edit'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+          <span style="font-size:20px;">✏️</span><span>编辑</span>
+        </button>
+        <button :class="{ active: mobileTab === 'settings' }" @click="mobileTab = 'settings'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+          <span style="font-size:20px;">⚙️</span><span>设置</span>
+        </button>
+        <button :class="{ active: mobileTab === 'ai' }" @click="mobileTab = 'ai'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+          <span style="font-size:20px;">🤖</span><span>AI</span>
+        </button>
       </div>
     </template>
 
@@ -5384,7 +5379,24 @@ function onPanelDiscard(): void {
   discardUnsavedDraft();
 }
 
+const rootRef = ref<HTMLElement | null>(null);
+let _rootResizeObserver: ResizeObserver | null = null;
+
 onMounted(() => {
+  // Fix mobile height: JS sets pixel height on root since CSS flex/% doesn't resolve
+  if (isMobile.value && rootRef.value) {
+    const parent = rootRef.value.parentElement;
+    if (parent) {
+      const setH = () => {
+        if (rootRef.value && parent) {
+          rootRef.value.style.height = parent.clientHeight + 'px';
+        }
+      };
+      setH();
+      _rootResizeObserver = new ResizeObserver(setH);
+      _rootResizeObserver.observe(parent);
+    }
+  }
   persistedState.value = readPersistedState();
   syncSelectedGlobalPresetFromState();
 
@@ -5431,6 +5443,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  _rootResizeObserver?.disconnect();
+  _rootResizeObserver = null;
   const target = window as unknown as Record<string, unknown>;
   target[DIRTY_STATE_KEY] = false;
   subscriptions.forEach(subscription => {
