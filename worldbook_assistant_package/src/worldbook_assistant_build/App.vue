@@ -7211,5 +7211,139 @@ watch(currentTheme, () => {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ═════════════════════════════════════════════════
+   Mobile Responsive
+   ═════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .wb-assistant-root {
+    padding: 6px;
+    gap: 6px;
+    border-radius: 0;
+  }
+
+  /* ── Toolbar ── */
+  .toolbar-label {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .toolbar-label select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .toolbar-btns {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .toolbar-btns .btn {
+    font-size: 0.78em;
+    padding: 4px 8px;
+  }
+
+  /* ── Bindings bar ── */
+  .wb-bindings {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 8px;
+    font-size: 0.78em;
+  }
+
+  /* ── Main layout ── */
+  .wb-main-layout {
+    display: block !important;
+    overflow: visible;
+  }
+
+  .wb-resize-handle {
+    display: none !important;
+  }
+
+  .wb-entry-list,
+  .wb-editor {
+    min-height: 0;
+    max-height: none;
+  }
+
+  /* ── AI Generator Panel ── */
+  .ai-generator-panel {
+    flex-direction: column;
+  }
+
+  .ai-sidebar {
+    width: 100%;
+    min-width: unset;
+    max-height: 110px;
+    border-right: none;
+    border-bottom: 1px solid var(--wb-border);
+  }
+
+  .ai-sidebar-head {
+    padding: 6px 10px;
+  }
+
+  .ai-session-list {
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    padding: 4px 8px;
+  }
+
+  .ai-session-item {
+    flex-shrink: 0;
+    min-width: 140px;
+    max-width: 200px;
+  }
+
+  .ai-chat-messages {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .ai-chat-bubble {
+    max-width: 95%;
+  }
+
+  .ai-chat-input-bar {
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .ai-chat-input {
+    min-height: 36px;
+    font-size: 0.85em;
+  }
+
+  /* ── Tag review modal ── */
+  .ai-tag-review-modal {
+    width: 95vw;
+    max-height: 85vh;
+  }
+
+  .ai-tag-review-actions {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .ai-tag-review-actions .btn {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.82em;
+  }
+
+  /* ── Status footer ── */
+  .wb-status {
+    font-size: 0.72em;
+    padding: 4px 8px;
+    gap: 6px;
+  }
+}
 </style>
 

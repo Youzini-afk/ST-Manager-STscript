@@ -177,6 +177,28 @@ function ensurePanelStyle(): void {
   background: rgba(124, 58, 237, 0.25);
   color: #c4b5fd;
 }
+
+@media (max-width: 768px) {
+  #${PANEL_ID} {
+    left: 0;
+    top: 0;
+    transform: none;
+    width: 100vw !important;
+    height: 100vh !important;
+    min-width: unset;
+    min-height: unset;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    resize: none;
+  }
+
+  #${PANEL_ID} .wb-assistant-header {
+    cursor: default;
+  }
+}
 `;
   doc.head.append(style);
 }
