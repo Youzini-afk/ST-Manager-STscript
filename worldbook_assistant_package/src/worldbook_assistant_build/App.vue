@@ -5759,6 +5759,8 @@ watch(currentTheme, () => {
   padding: 12px;
   display: grid;
   gap: 12px;
+  max-height: 40vh;
+  overflow-y: auto;
 }
 
 .global-mode-head {
