@@ -4976,14 +4976,31 @@ function startContentResize(e: PointerEvent): void {
   const target = e.currentTarget as HTMLElement;
   target.setPointerCapture(e.pointerId);
 
+  // Disable textarea interaction during drag to reduce reflow
+  textarea.style.pointerEvents = 'none';
+  textarea.style.willChange = 'height';
+
+  let rafId = 0;
+  let pendingHeight = startHeight;
+
+  const applyHeight = () => {
+    textarea.style.height = `${pendingHeight}px`;
+    textarea.style.minHeight = `${pendingHeight}px`;
+    rafId = 0;
+  };
+
   const onMove = (ev: PointerEvent) => {
-    const delta = ev.clientY - startY;
-    const newHeight = Math.max(120, startHeight + delta);
-    textarea.style.height = `${newHeight}px`;
-    textarea.style.minHeight = `${newHeight}px`;
+    pendingHeight = Math.max(120, startHeight + (ev.clientY - startY));
+    if (!rafId) {
+      rafId = requestAnimationFrame(applyHeight);
+    }
   };
 
   const onUp = () => {
+    if (rafId) cancelAnimationFrame(rafId);
+    applyHeight();
+    textarea.style.pointerEvents = '';
+    textarea.style.willChange = '';
     target.removeEventListener('pointermove', onMove);
     target.removeEventListener('pointerup', onUp);
   };
