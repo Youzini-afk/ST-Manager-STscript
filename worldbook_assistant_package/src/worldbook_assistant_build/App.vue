@@ -7071,8 +7071,10 @@ watch(currentTheme, () => {
 
 .wb-history-diff-wrap {
   min-height: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .wb-history-diff-head {
@@ -7096,8 +7098,10 @@ watch(currentTheme, () => {
 
 .wb-history-diff-grid > div {
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .wb-history-diff-grid > div + div {
@@ -7118,6 +7122,8 @@ watch(currentTheme, () => {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   font-size: 11px;
   background: var(--wb-input-bg-focus);
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 .diff-row {
@@ -7180,8 +7186,39 @@ watch(currentTheme, () => {
   .wb-history-modal {
     width: 100%;
     max-height: calc(100vh - 8px);
-    height: auto;
+    height: calc(100vh - 8px);
     border-radius: 8px;
+  }
+
+  .wb-history-diff-wrap {
+    overflow-y: auto;
+  }
+
+  .wb-history-diff-grid {
+    grid-template-columns: 1fr;
+    overflow: auto;
+  }
+
+  .wb-history-diff-grid > div {
+    max-height: 35vh;
+    overflow: auto;
+  }
+
+  .wb-history-diff-grid > div + div {
+    border-left: none;
+    border-top: 1px solid var(--wb-border-main);
+  }
+
+  .diff-row {
+    grid-template-columns: 1fr;
+  }
+
+  .line-no {
+    display: none;
+  }
+
+  .wb-history-diff-body {
+    font-size: 10px;
   }
 
   .wb-history-modal-header {
