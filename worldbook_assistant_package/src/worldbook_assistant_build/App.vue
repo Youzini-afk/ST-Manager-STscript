@@ -235,22 +235,21 @@
           </div>
 
         </div>
-
-        <!-- Tab Bar -->
-        <div class="mobile-tab-bar" style="position:fixed;bottom:0;left:0;right:0;z-index:10100;display:flex !important;height:52px;background:#1e293b;border-top:1px solid #334155;">
-          <button :class="{ active: mobileTab === 'list' }" @click="mobileTab = 'list'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
-            <span style="font-size:20px;">📋</span><span>列表</span>
-          </button>
-          <button :class="{ active: mobileTab === 'edit' }" @click="mobileTab = 'edit'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
-            <span style="font-size:20px;">✏️</span><span>编辑</span>
-          </button>
-          <button :class="{ active: mobileTab === 'settings' }" @click="mobileTab = 'settings'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
-            <span style="font-size:20px;">⚙️</span><span>设置</span>
-          </button>
-          <button :class="{ active: mobileTab === 'ai' }" @click="mobileTab = 'ai'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
-            <span style="font-size:20px;">🤖</span><span>AI</span>
-          </button>
-        </div>
+      </div>
+      <!-- Tab Bar: direct child of wb-assistant-root via fragment -->
+      <div style="display:flex !important;flex-shrink:0;height:52px;background:#1e293b;border-top:1px solid #334155;z-index:99999;">
+        <button :class="{ active: mobileTab === 'list' }" @click="mobileTab = 'list'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+          <span style="font-size:20px;">📋</span><span>列表</span>
+        </button>
+        <button :class="{ active: mobileTab === 'edit' }" @click="mobileTab = 'edit'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+          <span style="font-size:20px;">✏️</span><span>编辑</span>
+        </button>
+        <button :class="{ active: mobileTab === 'settings' }" @click="mobileTab = 'settings'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+          <span style="font-size:20px;">⚙️</span><span>设置</span>
+        </button>
+        <button :class="{ active: mobileTab === 'ai' }" @click="mobileTab = 'ai'" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:none;background:transparent;color:#94a3b8;font-size:10px;padding:4px 0;gap:2px;">
+          <span style="font-size:20px;">🤖</span><span>AI</span>
+        </button>
       </div>
     </template>
 
@@ -7110,7 +7109,6 @@ watch(currentTheme, () => {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding-bottom: 52px; /* reserve space for fixed tab bar */
 }
 
 .mobile-tab-content {
