@@ -104,6 +104,7 @@
                   ref="contentTextareaRef"
                   v-model="selectedEntry.content"
                   class="text-area large editor-content-area"
+                  style="min-height: calc(100vh - 280px);"
                 ></textarea>
                 <div class="content-resize-handle" @pointerdown="startContentResize">
                   <span class="content-resize-grip">⋯</span>
