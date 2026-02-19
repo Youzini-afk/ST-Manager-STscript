@@ -6050,7 +6050,7 @@ watch(currentTheme, () => {
 
 .wb-main-layout {
   flex: 1;
-  min-height: 0;
+  min-height: 60vh;
   display: grid;
   grid-template-columns: 320px 10px minmax(0, 1fr);
   gap: 0;
