@@ -200,13 +200,16 @@ function ensurePanelStyle(): void {
   }
 
   #${PANEL_BODY_ID} {
-    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
   }
 
   #${PANEL_BODY_ID} > div {
-    flex: none;
-    min-height: auto;
-    display: block;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
 }
 `;
