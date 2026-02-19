@@ -19,13 +19,24 @@
                     <span class="worldbook-picker-arrow">▾</span>
                   </button>
                   <div v-if="worldbookPickerOpen" class="worldbook-picker-dropdown">
-                    <button
-                      v-for="name in filteredSelectableWorldbookNames"
-                      :key="`wb-pick-m-${name}`"
-                      :class="{ active: name === selectedWorldbookName }"
-                      type="button"
-                      @click="selectedWorldbookName = name; worldbookPickerOpen = false"
-                    >{{ name }}</button>
+                    <input
+                      v-model="worldbookPickerSearchText"
+                      type="text"
+                      class="text-input worldbook-picker-search"
+                      placeholder="搜索世界书..."
+                      @keydown.enter.prevent="filteredSelectableWorldbookNames[0] && selectWorldbookFromPicker(filteredSelectableWorldbookNames[0])"
+                    />
+                    <div class="worldbook-picker-list">
+                      <button
+                        v-for="name in filteredSelectableWorldbookNames"
+                        :key="`wb-pick-m-${name}`"
+                        class="worldbook-picker-item"
+                        :class="{ active: name === selectedWorldbookName }"
+                        type="button"
+                        @click="selectWorldbookFromPicker(name)"
+                      >{{ name }}</button>
+                      <div v-if="!filteredSelectableWorldbookNames.length" class="empty-note">没有匹配的世界书</div>
+                    </div>
                   </div>
                 </div>
               </label>
