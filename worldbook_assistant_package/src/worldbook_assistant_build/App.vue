@@ -5580,7 +5580,7 @@ watch(currentTheme, () => {
   font-size: 13px;
   line-height: 1.35;
   border-radius: 10px;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 
@@ -5759,8 +5759,6 @@ watch(currentTheme, () => {
   padding: 12px;
   display: grid;
   gap: 12px;
-  max-height: 40vh;
-  overflow-y: auto;
 }
 
 .global-mode-head {
