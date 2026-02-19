@@ -46,6 +46,8 @@
                 <button class="btn" type="button" @click="triggerImport" style="padding:8px 14px;font-size:13px;">📥 导入</button>
                 <button class="btn" type="button" :disabled="!selectedWorldbookName" @click="exportCurrentWorldbook" style="padding:8px 14px;font-size:13px;">📤 导出</button>
                 <button class="btn" type="button" @click="toggleGlobalMode" :style="{ padding:'8px 14px', fontSize:'13px', background: globalWorldbookMode ? '#2563eb' : '', color: globalWorldbookMode ? '#fff' : '' }">🌐 全局</button>
+                <button class="btn" type="button" :disabled="!selectedEntry" @click="openEntryHistoryModal" style="padding:8px 14px;font-size:13px;">🕰️ 条目时光机</button>
+                <button class="btn" type="button" :disabled="!selectedWorldbookName" @click="openWorldbookHistoryModal" style="padding:8px 14px;font-size:13px;">⏪ 整本时光机</button>
               </div>
             </section>
             <div class="wb-bindings" v-if="bindings.global.length || bindings.charPrimary || bindings.charAdditional.length || bindings.chat">
@@ -7167,6 +7169,46 @@ watch(currentTheme, () => {
     border-right: none;
     border-bottom: 1px solid var(--wb-border-main);
     max-height: 240px;
+  }
+
+  .wb-history-modal {
+    width: 100%;
+    height: 95vh;
+    border-radius: 8px;
+  }
+
+  .wb-history-modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+
+  .wb-history-modal-header strong {
+    font-size: 13px;
+  }
+
+  .wb-history-modal-actions {
+    width: 100%;
+  }
+
+  .wb-history-modal-actions .btn {
+    flex: 1;
+    font-size: 11px;
+  }
+
+  .wb-history-diff-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wb-history-diff-head {
+    flex-direction: column;
+    gap: 6px;
+    align-items: flex-start;
+  }
+
+  .wb-history-diff-head > div {
+    font-size: 11px;
   }
 }
 
