@@ -5470,7 +5470,8 @@ watch(currentTheme, () => {
 
 <style scoped>
 .wb-assistant-root {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
   box-sizing: border-box;
   display: flex;
