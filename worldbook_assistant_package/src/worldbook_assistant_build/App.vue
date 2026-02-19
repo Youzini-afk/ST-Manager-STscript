@@ -7176,31 +7176,63 @@ watch(currentTheme, () => {
   .wb-history-versions {
     border-right: none;
     border-bottom: 1px solid var(--wb-border-main);
-    max-height: 160px;
+    max-height: 120px;
   }
 
   .wb-modal-backdrop {
-    padding: 4px;
+    padding: 2px;
   }
 
   .wb-history-modal {
     width: 100%;
-    max-height: calc(100vh - 8px);
-    height: calc(100vh - 8px);
-    border-radius: 8px;
+    max-height: calc(100vh - 4px);
+    height: calc(100vh - 4px);
+    border-radius: 6px;
+  }
+
+  .wb-history-modal-header {
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 8px;
+    flex-shrink: 0;
+  }
+
+  .wb-history-modal-header strong {
+    font-size: 12px;
+  }
+
+  .wb-history-modal-header > div:first-child span {
+    display: none;
+  }
+
+  .wb-history-modal-actions {
+    gap: 4px;
+  }
+
+  .wb-history-modal-actions .btn {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  .wb-history-modal-main {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
   }
 
   .wb-history-diff-wrap {
     overflow-y: auto;
+    min-height: 0;
   }
 
   .wb-history-diff-grid {
     grid-template-columns: 1fr;
-    overflow: auto;
+    overflow: visible;
   }
 
   .wb-history-diff-grid > div {
-    max-height: 35vh;
+    max-height: 30vh;
     overflow: auto;
   }
 
@@ -7221,38 +7253,14 @@ watch(currentTheme, () => {
     font-size: 10px;
   }
 
-  .wb-history-modal-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 8px 10px;
-  }
-
-  .wb-history-modal-header strong {
-    font-size: 13px;
-  }
-
-  .wb-history-modal-actions {
-    width: 100%;
-  }
-
-  .wb-history-modal-actions .btn {
-    flex: 1;
-    font-size: 11px;
-  }
-
-  .wb-history-diff-grid {
-    grid-template-columns: 1fr;
-  }
-
   .wb-history-diff-head {
-    flex-direction: column;
-    gap: 6px;
-    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 8px;
   }
 
   .wb-history-diff-head > div {
-    font-size: 11px;
+    font-size: 10px;
   }
 }
 
