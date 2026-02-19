@@ -177,7 +177,10 @@
                   <textarea v-model="selectedSecondaryKeysText" class="text-area compact"></textarea>
                 </label>
               </section>
-              <section class="editor-content-block">
+              <section class="editor-content-block" ref="editorContentBlockRef">
+                <div v-if="isMobile" class="content-top-drag-handle" @pointerdown="startContentTopDrag">
+                  <span class="content-top-drag-grip">━━━</span>
+                </div>
                 <div class="editor-content-title">世界观设定 / 内容 (CONTENT)</div>
                 <textarea
                   ref="contentTextareaRef"
@@ -5388,6 +5391,47 @@ function startContentResize(e: PointerEvent): void {
   target.addEventListener('pointerup', onUp);
 }
 
+const editorContentBlockRef = ref<HTMLElement | null>(null);
+let contentTopDragOffset = 0;
+
+function startContentTopDrag(e: PointerEvent): void {
+  e.preventDefault();
+  const block = editorContentBlockRef.value;
+  if (!block) return;
+
+  const startY = e.clientY;
+  const startOffset = contentTopDragOffset;
+  const target = e.currentTarget as HTMLElement;
+  target.setPointerCapture(e.pointerId);
+
+  let rafId = 0;
+  let pendingOffset = startOffset;
+
+  const apply = () => {
+    block.style.marginTop = `${-pendingOffset}px`;
+    rafId = 0;
+  };
+
+  const onMove = (ev: PointerEvent) => {
+    const delta = startY - ev.clientY; // positive = drag up
+    pendingOffset = Math.max(0, Math.min(400, startOffset + delta));
+    if (!rafId) {
+      rafId = requestAnimationFrame(apply);
+    }
+  };
+
+  const onUp = () => {
+    if (rafId) cancelAnimationFrame(rafId);
+    contentTopDragOffset = pendingOffset;
+    apply();
+    target.removeEventListener('pointermove', onMove);
+    target.removeEventListener('pointerup', onUp);
+  };
+
+  target.addEventListener('pointermove', onMove);
+  target.addEventListener('pointerup', onUp);
+}
+
 function startPaneResize(key: PaneResizeKey, event: PointerEvent): void {
   if (isCompactLayout.value) {
     return;
@@ -8052,6 +8096,33 @@ watch(currentTheme, () => {
   .content-resize-handle {
     display: flex;
     height: 28px;
+  }
+
+  .editor-content-block {
+    position: relative;
+    z-index: 10;
+    background: var(--wb-bg-root);
+  }
+
+  .content-top-drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 22px;
+    cursor: ns-resize;
+    background: var(--wb-bg-panel);
+    border: 1px solid var(--wb-border);
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    touch-action: none;
+    user-select: none;
+  }
+
+  .content-top-drag-grip {
+    font-size: 12px;
+    color: var(--wb-text-dim);
+    letter-spacing: 3px;
+    line-height: 1;
   }
 
   .text-area.compact {
