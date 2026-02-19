@@ -1772,35 +1772,9 @@ const editorSideWidth = ref(360);
 const paneResizeState = ref<PaneResizeState | null>(null);
 const hostResizeWindow = ref<Window | null>(null);
 
-const _mobileDebugInfo = ref('');
-const _isMobileDevice = (() => {
-  const info: string[] = [];
-  try {
-    info.push(`win.iW=${window.innerWidth}`);
-    info.push(`scr=${window.screen.width}x${window.screen.height}`);
-    info.push(`tp=${navigator.maxTouchPoints}`);
-    info.push(`parent==win:${window.parent === window}`);
-    try {
-      const pw = window.parent;
-      info.push(`p.scr=${pw.screen.width}x${pw.screen.height}`);
-      info.push(`p.iW=${pw.innerWidth}`);
-    } catch (e) {
-      info.push('p.err:cross-origin');
-    }
-  } catch (e) {
-    info.push(`ERR:${e}`);
-  }
-  _mobileDebugInfo.value = info.join(' | ');
+const viewportHeight = ref(typeof window !== 'undefined' ? window.innerHeight : 900);
 
-  // Detection: use current window's screen (works in both iframe and non-iframe)
-  const sw = window.screen.width;
-  const sh = window.screen.height;
-  const minDim = Math.min(sw, sh);
-  if (minDim <= 768) return true;
-  if (navigator.maxTouchPoints > 0 && minDim <= 1024) return true;
-  return false;
-})();
-const isMobile = computed(() => _isMobileDevice);
+const isMobile = computed(() => viewportWidth.value < viewportHeight.value);
 const showMobileEditor = computed(() => isMobile.value && selectedEntryUid.value !== null);
 const mobileTab = ref<'list' | 'edit' | 'settings' | 'ai'>('list');
 
@@ -5227,7 +5201,9 @@ function clampFloatingPanelToViewport(panel: FloatingPanelState): void {
 }
 
 function handleFloatingWindowResize(): void {
-  viewportWidth.value = resolveHostWindow().innerWidth;
+  const hostWin = resolveHostWindow();
+  viewportWidth.value = hostWin.innerWidth;
+  viewportHeight.value = hostWin.innerHeight;
   clampPaneWidths();
   for (const key of floatingPanelKeys) {
     if (!floatingPanels[key].visible) {
