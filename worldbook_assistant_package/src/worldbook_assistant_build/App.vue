@@ -1,6 +1,11 @@
 <template>
   <div class="wb-assistant-root" :style="themeStyles">
 
+    <!-- DEBUG BANNER - REMOVE AFTER DEBUGGING -->
+    <div style="background:#dc2626;color:#fff;padding:6px 10px;font-size:11px;font-family:monospace;word-break:break-all;flex-shrink:0;z-index:99999;">
+      isMobile={{ isMobile }} | {{ _mobileDebugInfo }}
+    </div>
+
     <!-- ═══ Mobile Tab View ═══ -->
     <template v-if="isMobile">
       <div class="mobile-tab-view">
@@ -1676,14 +1681,33 @@ const mainPaneWidth = ref(320);
 const editorSideWidth = ref(360);
 const paneResizeState = ref<PaneResizeState | null>(null);
 const hostResizeWindow = ref<Window | null>(null);
-const _hostWin = typeof window !== 'undefined' ? (window.parent || window) : null;
+
+const _mobileDebugInfo = ref('');
 const _isMobileDevice = (() => {
-  if (!_hostWin) return false;
-  // Use screen dimensions (actual device size, not affected by viewport meta tag)
-  const minDim = Math.min(_hostWin.screen.width, _hostWin.screen.height);
+  const info: string[] = [];
+  try {
+    info.push(`win.iW=${window.innerWidth}`);
+    info.push(`scr=${window.screen.width}x${window.screen.height}`);
+    info.push(`tp=${navigator.maxTouchPoints}`);
+    info.push(`parent==win:${window.parent === window}`);
+    try {
+      const pw = window.parent;
+      info.push(`p.scr=${pw.screen.width}x${pw.screen.height}`);
+      info.push(`p.iW=${pw.innerWidth}`);
+    } catch (e) {
+      info.push('p.err:cross-origin');
+    }
+  } catch (e) {
+    info.push(`ERR:${e}`);
+  }
+  _mobileDebugInfo.value = info.join(' | ');
+
+  // Detection: use current window's screen (works in both iframe and non-iframe)
+  const sw = window.screen.width;
+  const sh = window.screen.height;
+  const minDim = Math.min(sw, sh);
   if (minDim <= 768) return true;
-  // Touch-capable device with medium screen (tablet)
-  if (_hostWin.navigator?.maxTouchPoints > 0 && minDim <= 1024) return true;
+  if (navigator.maxTouchPoints > 0 && minDim <= 1024) return true;
   return false;
 })();
 const isMobile = computed(() => _isMobileDevice);
