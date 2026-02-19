@@ -5381,19 +5381,40 @@ function onPanelDiscard(): void {
 
 const rootRef = ref<HTMLElement | null>(null);
 let _rootResizeObserver: ResizeObserver | null = null;
+let _mobileResizeHandler: (() => void) | null = null;
 
 onMounted(() => {
-  // Fix mobile height: JS sets pixel height on root since CSS flex/% doesn't resolve
+  // Fix mobile height: compute exact pixel height based on viewport position
   if (isMobile.value && rootRef.value) {
-    const parent = rootRef.value.parentElement;
+    const hostWin = (() => { try { return window.parent || window; } catch { return window; } })();
+    const el = rootRef.value;
+
+    const syncHeight = () => {
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = hostWin.innerHeight || window.innerHeight || 0;
+      const available = vh - rect.top;
+      if (available > 0) {
+        el.style.height = available + 'px';
+        el.style.maxHeight = available + 'px';
+        el.style.overflow = 'hidden';
+      }
+    };
+
+    // Initial + delayed (wait for layout)
+    syncHeight();
+    requestAnimationFrame(syncHeight);
+    setTimeout(syncHeight, 100);
+    setTimeout(syncHeight, 500);
+
+    // Respond to resize
+    _mobileResizeHandler = syncHeight;
+    hostWin.addEventListener('resize', syncHeight);
+
+    // Also observe parent just in case
+    const parent = el.parentElement;
     if (parent) {
-      const setH = () => {
-        if (rootRef.value && parent) {
-          rootRef.value.style.height = parent.clientHeight + 'px';
-        }
-      };
-      setH();
-      _rootResizeObserver = new ResizeObserver(setH);
+      _rootResizeObserver = new ResizeObserver(syncHeight);
       _rootResizeObserver.observe(parent);
     }
   }
@@ -5445,6 +5466,10 @@ onMounted(() => {
 onUnmounted(() => {
   _rootResizeObserver?.disconnect();
   _rootResizeObserver = null;
+  if (_mobileResizeHandler) {
+    try { (window.parent || window).removeEventListener('resize', _mobileResizeHandler); } catch { /* ignore */ }
+    _mobileResizeHandler = null;
+  }
   const target = window as unknown as Record<string, unknown>;
   target[DIRTY_STATE_KEY] = false;
   subscriptions.forEach(subscription => {
