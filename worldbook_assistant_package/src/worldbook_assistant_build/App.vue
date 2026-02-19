@@ -84,10 +84,43 @@
                 </button>
               </div>
               <div v-if="filteredGlobalWorldbooks.length" style="font-size:12px;margin-bottom:4px;opacity:0.7;">已启用：</div>
-              <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                <button v-for="name in filteredGlobalWorldbooks" :key="`m-gl-${name}`" type="button" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border:1px solid var(--wb-border-subtle);border-radius:4px;background:var(--wb-input-bg);color:var(--wb-text-main);font-size:11px;cursor:pointer;" @click="removeGlobalWorldbook(name)">
-                  {{ name }} <span style="color:#ef4444;">×</span>
+              <div style="display:flex;flex-direction:column;gap:2px;margin-bottom:8px;">
+                <button v-for="name in filteredGlobalWorldbooks" :key="`m-gl-${name}`" type="button" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:6px 8px;border:none;background:var(--wb-input-bg);border-radius:4px;color:var(--wb-text-main);font-size:12px;cursor:pointer;" @click="removeGlobalWorldbook(name)">
+                  <span>{{ name }}</span><span style="color:#ef4444;">移除</span>
                 </button>
+              </div>
+              <!-- Role Binding Section -->
+              <div style="border-top:1px solid var(--wb-border-subtle);padding-top:8px;margin-top:4px;">
+                <div style="font-size:12px;font-weight:600;margin-bottom:6px;">角色绑定</div>
+                <div style="font-size:11px;margin-bottom:6px;opacity:0.8;" :style="{ color: currentRoleContext ? '#60a5fa' : '#94a3b8' }">
+                  {{ currentRoleContext ? `当前角色: ${currentRoleContext.name}` : '当前未进入角色聊天' }}
+                </div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">
+                  <button class="btn mini" type="button" :disabled="!selectedGlobalPreset || !currentRoleContext" @click="bindCurrentRoleToSelectedPreset" style="font-size:11px;">绑定当前角色</button>
+                  <button class="btn mini" type="button" :disabled="!selectedGlobalPreset || !isCurrentRoleBoundToSelectedPreset" @click="unbindCurrentRoleFromSelectedPreset" style="font-size:11px;">解绑当前角色</button>
+                </div>
+                <div style="margin-bottom:6px;">
+                  <button type="button" :disabled="!selectedGlobalPreset" @click="toggleRolePicker" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:6px 8px;border:1px solid var(--wb-border-subtle);border-radius:4px;background:var(--wb-input-bg);color:var(--wb-text-main);font-size:12px;cursor:pointer;">
+                    <span>{{ selectedGlobalPreset ? '从角色卡列表选择绑定' : '请先选择预设' }}</span>
+                    <span>{{ rolePickerOpen ? '▴' : '▾' }}</span>
+                  </button>
+                  <div v-if="rolePickerOpen" style="margin-top:4px;">
+                    <input v-model="roleBindSearchText" type="text" class="text-input" placeholder="搜索角色名..." style="font-size:12px;margin-bottom:4px;" @keydown.enter.prevent="bindFirstRoleCandidate" />
+                    <div style="max-height:120px;overflow-y:auto;">
+                      <button v-for="candidate in roleBindingCandidates" :key="`m-role-${candidate.key}`" type="button" :disabled="candidate.bound" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:6px 8px;border:none;background:var(--wb-input-bg);border-radius:4px;color:var(--wb-text-main);font-size:12px;margin-bottom:2px;cursor:pointer;opacity: 1;" :style="{ opacity: candidate.bound ? '0.5' : '1' }" @click="bindRoleCandidateToSelectedPreset(candidate)">
+                        <span>{{ candidate.name }}</span><span :style="{ color: candidate.bound ? '#94a3b8' : '#22c55e' }">{{ candidate.bound ? '已绑定' : '绑定' }}</span>
+                      </button>
+                      <div v-if="!roleBindingCandidates.length" style="font-size:11px;opacity:0.5;padding:4px;">没有匹配角色</div>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="selectedGlobalPreset" style="display:flex;flex-wrap:wrap;gap:4px;">
+                  <button v-for="binding in selectedGlobalPresetRoleBindings" :key="`m-rb-${selectedGlobalPreset?.id}-${binding.key}`" type="button" style="display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border:1px solid var(--wb-border-subtle);border-radius:4px;background:var(--wb-input-bg);color:var(--wb-text-main);font-size:11px;cursor:pointer;" @click="removeRoleBindingFromSelectedPreset(binding.key)">
+                    {{ binding.name }} <span style="color:#ef4444;">×</span>
+                  </button>
+                  <div v-if="!selectedGlobalPresetRoleBindings.length" style="font-size:11px;opacity:0.5;">当前预设尚未绑定角色</div>
+                </div>
+                <div v-else style="font-size:11px;opacity:0.5;">选择预设后可配置角色绑定</div>
               </div>
             </div>
             <div class="mobile-entry-list">
