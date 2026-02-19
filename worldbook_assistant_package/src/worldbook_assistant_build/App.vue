@@ -7347,6 +7347,29 @@ watch(currentTheme, () => {
     padding: 4px 8px;
     gap: 6px;
   }
+
+  /* ── Editor content area ── */
+  .editor-content-area {
+    min-height: 50vh;
+    resize: vertical;
+  }
+
+  .text-area.compact {
+    min-height: 60px;
+    resize: vertical;
+  }
+
+  .editor-center {
+    padding: 8px;
+  }
+
+  .editor-side {
+    padding: 8px;
+  }
+
+  .editor-grid.two-cols {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
 
