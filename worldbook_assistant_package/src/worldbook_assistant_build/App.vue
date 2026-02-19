@@ -5977,7 +5977,7 @@ watch(currentTheme, () => {
 }
 
 .content-resize-handle {
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   height: 18px;
@@ -7408,10 +7408,11 @@ watch(currentTheme, () => {
 
   /* ── Editor content area ── */
   .editor-content-area {
-    min-height: 500px;
+    min-height: 70vh;
   }
 
   .content-resize-handle {
+    display: flex;
     height: 28px;
   }
 
