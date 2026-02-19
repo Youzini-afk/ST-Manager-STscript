@@ -498,7 +498,17 @@
 
                     <section class="editor-content-block">
                       <div class="editor-content-title">世界观设定 / 内容 (CONTENT)</div>
-                      <textarea v-model="selectedEntry.content" class="text-area large editor-content-area"></textarea>
+                      <textarea
+                        ref="contentTextareaRef"
+                        v-model="selectedEntry.content"
+                        class="text-area large editor-content-area"
+                      ></textarea>
+                      <div
+                        class="content-resize-handle"
+                        @pointerdown="startContentResize"
+                      >
+                        <span class="content-resize-grip">⋯</span>
+                      </div>
                     </section>
 
                     <details class="editor-advanced">
@@ -1408,6 +1418,7 @@ const floatingPanelKeys: FloatingPanelKey[] = ['find', 'activation'];
 const viewportWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1440);
 const mainLayoutRef = ref<HTMLElement | null>(null);
 const editorShellRef = ref<HTMLElement | null>(null);
+const contentTextareaRef = ref<HTMLTextAreaElement | null>(null);
 const mainPaneWidth = ref(320);
 const editorSideWidth = ref(360);
 const paneResizeState = ref<PaneResizeState | null>(null);
@@ -4955,6 +4966,32 @@ function clampPaneWidths(): void {
   }
 }
 
+function startContentResize(e: PointerEvent): void {
+  e.preventDefault();
+  const textarea = contentTextareaRef.value;
+  if (!textarea) return;
+
+  const startY = e.clientY;
+  const startHeight = textarea.offsetHeight;
+  const target = e.currentTarget as HTMLElement;
+  target.setPointerCapture(e.pointerId);
+
+  const onMove = (ev: PointerEvent) => {
+    const delta = ev.clientY - startY;
+    const newHeight = Math.max(120, startHeight + delta);
+    textarea.style.height = `${newHeight}px`;
+    textarea.style.minHeight = `${newHeight}px`;
+  };
+
+  const onUp = () => {
+    target.removeEventListener('pointermove', onMove);
+    target.removeEventListener('pointerup', onUp);
+  };
+
+  target.addEventListener('pointermove', onMove);
+  target.addEventListener('pointerup', onUp);
+}
+
 function startPaneResize(key: PaneResizeKey, event: PointerEvent): void {
   if (isCompactLayout.value) {
     return;
@@ -5937,6 +5974,27 @@ watch(currentTheme, () => {
   flex: 1;
   resize: none;
   line-height: 1.5;
+}
+
+.content-resize-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  cursor: ns-resize;
+  background: var(--wb-bg-panel);
+  border: 1px solid var(--wb-border);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  touch-action: none;
+  user-select: none;
+}
+
+.content-resize-grip {
+  font-size: 14px;
+  color: var(--wb-text-dim);
+  letter-spacing: 2px;
+  line-height: 1;
 }
 
 .editor-advanced {
@@ -7350,13 +7408,15 @@ watch(currentTheme, () => {
 
   /* ── Editor content area ── */
   .editor-content-area {
-    min-height: 50vh;
-    resize: vertical;
+    min-height: 500px;
+  }
+
+  .content-resize-handle {
+    height: 28px;
   }
 
   .text-area.compact {
     min-height: 60px;
-    resize: vertical;
   }
 
   .editor-center {
