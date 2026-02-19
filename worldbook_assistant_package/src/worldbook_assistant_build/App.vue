@@ -7082,6 +7082,7 @@ watch(currentTheme, () => {
   flex: 1;
   min-height: 0;
   overflow: hidden;
+  padding-bottom: 52px; /* reserve space for fixed tab bar */
 }
 
 .mobile-tab-content {
@@ -7130,11 +7131,14 @@ watch(currentTheme, () => {
 }
 
 .mobile-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10100;
   display: flex;
   border-top: 1px solid var(--wb-border);
   background: var(--wb-bg-secondary);
-  flex-shrink: 0;
-  padding: 0;
   height: 52px;
 }
 
