@@ -7220,6 +7220,8 @@ watch(currentTheme, () => {
     padding: 6px;
     gap: 6px;
     border-radius: 0;
+    height: auto;
+    overflow-y: auto;
   }
 
   /* ── Toolbar ── */
@@ -7257,6 +7259,7 @@ watch(currentTheme, () => {
   .wb-main-layout {
     display: block !important;
     overflow: visible;
+    flex: none;
   }
 
   .wb-resize-handle {

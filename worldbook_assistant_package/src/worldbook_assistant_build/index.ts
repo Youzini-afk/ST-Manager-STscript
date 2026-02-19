@@ -198,6 +198,16 @@ function ensurePanelStyle(): void {
   #${PANEL_ID} .wb-assistant-header {
     cursor: default;
   }
+
+  #${PANEL_BODY_ID} {
+    overflow-y: auto;
+  }
+
+  #${PANEL_BODY_ID} > div {
+    flex: none;
+    min-height: auto;
+    display: block;
+  }
 }
 `;
   doc.head.append(style);
