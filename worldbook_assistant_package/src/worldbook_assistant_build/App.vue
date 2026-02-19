@@ -363,6 +363,7 @@
             />
           </section>
 
+          <div class="wb-scroll-area">
           <section class="wb-bindings">
             <div class="wb-history-shortcuts">
               <button
@@ -1006,6 +1007,7 @@
               </template>
             </main>
           </section>
+          </div>
 
           <footer class="wb-status">
             <span>{{ isBusy ? '加载中...' : statusMessage }}</span>
@@ -5580,9 +5582,18 @@ watch(currentTheme, () => {
   font-size: 13px;
   line-height: 1.35;
   border-radius: 10px;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
+
+.wb-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 
 .wb-settings-wrapper {
   width: 100%;
