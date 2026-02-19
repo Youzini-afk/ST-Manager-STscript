@@ -1676,7 +1676,8 @@ const mainPaneWidth = ref(320);
 const editorSideWidth = ref(360);
 const paneResizeState = ref<PaneResizeState | null>(null);
 const hostResizeWindow = ref<Window | null>(null);
-const mobileMediaQuery = typeof window !== 'undefined' ? window.matchMedia('(max-width: 768px)') : null;
+const _hostWin = typeof window !== 'undefined' ? (window.parent || window) : null;
+const mobileMediaQuery = _hostWin ? _hostWin.matchMedia('(max-width: 768px)') : null;
 const isMobileFlag = ref(mobileMediaQuery?.matches ?? false);
 if (mobileMediaQuery) {
   mobileMediaQuery.addEventListener('change', (e) => { isMobileFlag.value = e.matches; });
