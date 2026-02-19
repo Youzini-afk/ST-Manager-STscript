@@ -7862,8 +7862,8 @@ watch(currentTheme, () => {
 
   /* ── Editor content area ── */
   .editor-content-area {
-    min-height: 300px;
-    height: 50vh;
+    flex: 1;
+    min-height: 40vh;
   }
 
   .content-resize-handle {
