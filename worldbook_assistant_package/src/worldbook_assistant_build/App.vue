@@ -60,6 +60,7 @@
                 :data-status="getEntryVisualStatus(entry)"
                 :class="{ selected: entry.uid === selectedEntryUid, disabled: !entry.enabled }"
                 @click="selectEntry(entry.uid)"
+                style="border: 1px solid var(--wb-border-subtle); border-radius: 8px; padding: 8px 10px; margin-bottom: 4px;"
               >
                 <div class="entry-item-head">
                   <span class="entry-status-dot" :data-status="getEntryVisualStatus(entry)"></span>
@@ -68,6 +69,12 @@
                 </div>
                 <div class="entry-item-keys" v-if="entry.strategy.keys?.length">
                   {{ entry.strategy.keys.join(', ') }}
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;font-size:10px;opacity:0.8;">
+                  <span style="background:var(--wb-input-bg);padding:2px 6px;border-radius:4px;">📍 {{ getPositionTypeLabel(entry.position.type) }}</span>
+                  <span style="background:var(--wb-input-bg);padding:2px 6px;border-radius:4px;">⚖️ #{{ entry.position.order }}</span>
+                  <span v-if="entry.recursion.prevent_incoming" style="background:var(--wb-input-bg);padding:2px 6px;border-radius:4px;color:#f59e0b;">🚫入</span>
+                  <span v-if="entry.recursion.prevent_outgoing" style="background:var(--wb-input-bg);padding:2px 6px;border-radius:4px;color:#f59e0b;">🚫出</span>
                 </div>
               </button>
               <div v-if="!filteredEntries.length" class="empty-note">暂无条目</div>
