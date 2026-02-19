@@ -1772,9 +1772,20 @@ const editorSideWidth = ref(360);
 const paneResizeState = ref<PaneResizeState | null>(null);
 const hostResizeWindow = ref<Window | null>(null);
 
-const viewportHeight = ref(typeof window !== 'undefined' ? window.innerHeight : 900);
+const screenWidth = ref(typeof window !== 'undefined' ? window.screen.width : 1440);
+const screenHeight = ref(typeof window !== 'undefined' ? window.screen.height : 900);
 
-const isMobile = computed(() => viewportWidth.value < viewportHeight.value);
+const isMobile = computed(() => screenWidth.value < screenHeight.value);
+
+// Keep screen dimensions in sync on orientation change
+if (typeof window !== 'undefined') {
+  const syncScreenDims = () => {
+    screenWidth.value = window.screen.width;
+    screenHeight.value = window.screen.height;
+  };
+  window.addEventListener('orientationchange', () => setTimeout(syncScreenDims, 150));
+  window.addEventListener('resize', syncScreenDims);
+}
 const showMobileEditor = computed(() => isMobile.value && selectedEntryUid.value !== null);
 const mobileTab = ref<'list' | 'edit' | 'settings' | 'ai'>('list');
 
@@ -5203,7 +5214,6 @@ function clampFloatingPanelToViewport(panel: FloatingPanelState): void {
 function handleFloatingWindowResize(): void {
   const hostWin = resolveHostWindow();
   viewportWidth.value = hostWin.innerWidth;
-  viewportHeight.value = hostWin.innerHeight;
   clampPaneWidths();
   for (const key of floatingPanelKeys) {
     if (!floatingPanels[key].visible) {
