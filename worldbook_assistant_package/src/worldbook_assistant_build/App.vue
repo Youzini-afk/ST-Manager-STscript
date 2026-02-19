@@ -1,5 +1,256 @@
 <template>
   <div class="wb-assistant-root" :style="themeStyles">
+
+    <!-- ═══ Mobile Tab View ═══ -->
+    <template v-if="isMobile">
+      <div class="mobile-tab-view">
+        <div class="mobile-tab-content">
+
+          <!-- Tab: 列表 -->
+          <div v-show="mobileTab === 'list'" class="mobile-pane">
+            <section class="wb-toolbar">
+              <label class="toolbar-label">
+                <span>世界书</span>
+                <div ref="worldbookPickerRef" class="worldbook-picker">
+                  <button class="worldbook-picker-trigger" type="button" @click="toggleWorldbookPicker">
+                    <span class="worldbook-picker-trigger-text" :title="selectedWorldbookName || '请选择世界书'">
+                      {{ selectedWorldbookName || '请选择世界书' }}
+                    </span>
+                    <span class="worldbook-picker-arrow">▾</span>
+                  </button>
+                  <div v-if="worldbookPickerOpen" class="worldbook-picker-dropdown">
+                    <button
+                      v-for="name in filteredSelectableWorldbookNames"
+                      :key="`wb-pick-m-${name}`"
+                      :class="{ active: name === selectedWorldbookName }"
+                      type="button"
+                      @click="selectedWorldbookName = name; worldbookPickerOpen = false"
+                    >{{ name }}</button>
+                  </div>
+                </div>
+              </label>
+              <div class="toolbar-btns">
+                <button class="btn" type="button" :disabled="!hasUnsavedChanges" @click="saveCurrentWorldbook">💾 保存</button>
+                <button class="btn" type="button" @click="addEntry">+ 新条目</button>
+              </div>
+            </section>
+            <div class="wb-bindings" v-if="bindings.global.length || bindings.charPrimary || bindings.charAdditional.length || bindings.chat">
+              <span v-for="name in bindings.global" :key="`bg-m-${name}`" class="binding-chip global" :title="name">{{ name }}</span>
+              <span v-if="bindings.charPrimary" :key="`bc-m-${bindings.charPrimary}`" class="binding-chip char" :title="bindings.charPrimary">{{ bindings.charPrimary }}</span>
+              <span v-for="name in bindings.charAdditional" :key="`bca-m-${name}`" class="binding-chip char" :title="name">{{ name }}</span>
+              <span v-if="bindings.chat" :key="`bch-m-${bindings.chat}`" class="binding-chip chat" :title="bindings.chat">{{ bindings.chat }}</span>
+            </div>
+            <div class="mobile-entry-list">
+              <button
+                v-for="entry in filteredEntries"
+                :key="`me-${entry.uid}`"
+                type="button"
+                class="entry-item"
+                :data-status="getEntryVisualStatus(entry)"
+                :class="{ selected: entry.uid === selectedEntryUid, disabled: !entry.enabled }"
+                @click="selectEntry(entry.uid)"
+              >
+                <div class="entry-item-head">
+                  <span class="entry-status-dot" :data-status="getEntryVisualStatus(entry)"></span>
+                  <div class="entry-item-title">{{ entry.name || `条目 ${entry.uid}` }}</div>
+                  <span class="entry-chip uid">#{{ entry.uid }}</span>
+                </div>
+                <div class="entry-item-keys" v-if="entry.strategy.keys?.length">
+                  {{ entry.strategy.keys.join(', ') }}
+                </div>
+              </button>
+              <div v-if="!filteredEntries.length" class="empty-note">暂无条目</div>
+            </div>
+          </div>
+
+          <!-- Tab: 编辑 -->
+          <div v-show="mobileTab === 'edit'" class="mobile-pane">
+            <template v-if="selectedEntry">
+              <header class="editor-head">
+                <label class="field editor-comment">
+                  <span>备注 (COMMENT)</span>
+                  <input v-model="selectedEntry.name" type="text" class="text-input" />
+                </label>
+                <div class="editor-badges">
+                  <span class="editor-badge" :class="selectedEntry.enabled ? 'on' : 'off'">{{ selectedEntry.enabled ? 'EN' : 'OFF' }}</span>
+                  <span class="editor-badge mono">#{{ selectedEntry.uid }}</span>
+                  <span class="editor-badge mono">~{{ selectedTokenEstimate }}T</span>
+                </div>
+              </header>
+              <section class="editor-grid two-cols editor-keyword-grid">
+                <label class="field">
+                  <span>主要关键词 (KEYS)</span>
+                  <textarea v-model="selectedKeysText" class="text-area compact"></textarea>
+                </label>
+                <label class="field">
+                  <span>次要关键词 (SECONDARY)</span>
+                  <textarea v-model="selectedSecondaryKeysText" class="text-area compact"></textarea>
+                </label>
+              </section>
+              <section class="editor-content-block">
+                <div class="editor-content-title">世界观设定 / 内容 (CONTENT)</div>
+                <textarea
+                  ref="contentTextareaRef"
+                  v-model="selectedEntry.content"
+                  class="text-area large editor-content-area"
+                ></textarea>
+                <div class="content-resize-handle" @pointerdown="startContentResize">
+                  <span class="content-resize-grip">⋯</span>
+                </div>
+              </section>
+            </template>
+            <div v-else class="empty-block">请在列表中选择一个条目</div>
+          </div>
+
+          <!-- Tab: 设置 -->
+          <div v-show="mobileTab === 'settings'" class="mobile-pane">
+            <template v-if="selectedEntry">
+              <article class="editor-card">
+                <h4>触发策略 (STRATEGY)</h4>
+                <label class="field checkbox-inline">
+                  <input v-model="selectedEntry.enabled" type="checkbox" />
+                  <span>启用条目</span>
+                </label>
+                <div class="strategy-switch">
+                  <button type="button" class="strategy-pill constant" :class="{ active: selectedEntry.strategy.type === 'constant' }" @click="selectedEntry.strategy.type = 'constant'">🔵 常驻</button>
+                  <button type="button" class="strategy-pill vector" :class="{ active: selectedEntry.strategy.type === 'vectorized' }" @click="selectedEntry.strategy.type = 'vectorized'">📎 向量化</button>
+                  <button type="button" class="strategy-pill selective" :class="{ active: selectedEntry.strategy.type === 'selective' }" @click="selectedEntry.strategy.type = 'selective'">🟢 关键词</button>
+                </div>
+                <details class="editor-advanced">
+                  <summary>高级策略设置</summary>
+                  <label class="field">
+                    <span>次要逻辑 (LOGIC)</span>
+                    <select v-model="selectedEntry.strategy.keys_secondary.logic" class="text-input">
+                      <option v-for="item in secondaryLogicOptions" :key="`ml-${item}`" :value="item">{{ getSecondaryLogicLabel(item) }}</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>扫描深度</span>
+                    <input v-model="selectedScanDepthText" type="text" class="text-input" placeholder="留空或 same_as_global" />
+                  </label>
+                  <label class="field">
+                    <span>概率(0-100)</span>
+                    <input v-model.number="selectedEntry.probability" type="number" class="text-input" min="0" max="100" step="1" />
+                  </label>
+                </details>
+              </article>
+              <article class="editor-card">
+                <h4>插入设置 (INSERTION)</h4>
+                <label class="field">
+                  <span>位置 (Position)</span>
+                  <select v-model="selectedEntry.position.type" class="text-input" @change="handleSelectedPositionTypeChanged">
+                    <option v-for="item in positionTypeOptions" :key="`mp-${item}`" :value="item">{{ getPositionTypeLabel(item) }}</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>权重 (Order)</span>
+                  <input v-model.number="selectedEntry.position.order" type="number" class="text-input" step="1" />
+                </label>
+                <div class="editor-grid two-cols">
+                  <label class="field" :class="{ disabled: selectedEntry.position.type !== 'at_depth' }">
+                    <span>at_depth role</span>
+                    <select v-model="selectedEntry.position.role" class="text-input" :disabled="selectedEntry.position.type !== 'at_depth'">
+                      <option value="system">system</option>
+                      <option value="assistant">assistant</option>
+                      <option value="user">user</option>
+                    </select>
+                  </label>
+                  <label class="field" :class="{ disabled: selectedEntry.position.type !== 'at_depth' }">
+                    <span>at_depth depth</span>
+                    <input v-model.number="selectedEntry.position.depth" type="number" class="text-input" min="1" step="1" :disabled="selectedEntry.position.type !== 'at_depth'" />
+                  </label>
+                </div>
+              </article>
+              <article class="editor-card">
+                <h4>递归与效果 (RECURSION)</h4>
+                <label class="field checkbox-inline">
+                  <input v-model="selectedEntry.recursion.prevent_incoming" type="checkbox" />
+                  <span>不可递归命中</span>
+                </label>
+                <label class="field checkbox-inline">
+                  <input v-model="selectedEntry.recursion.prevent_outgoing" type="checkbox" />
+                  <span>阻止后续递归</span>
+                </label>
+              </article>
+              <details class="editor-advanced">
+                <summary>高级字段 / extra JSON</summary>
+                <label class="field">
+                  <span>extra JSON（未知字段）</span>
+                  <textarea v-model="selectedExtraText" class="text-area compact" placeholder="{ ... }"></textarea>
+                </label>
+                <div class="field-actions">
+                  <button class="btn" type="button" @click="applyExtraJson">应用 extra</button>
+                  <button class="btn" type="button" @click="clearExtra">清空 extra</button>
+                </div>
+              </details>
+              <div class="mobile-danger-zone">
+                <button class="btn danger" type="button" @click="removeSelectedEntry">🗑 删除此条目</button>
+                <button class="btn" type="button" @click="duplicateSelectedEntry">📋 复制条目</button>
+              </div>
+            </template>
+            <div v-else class="empty-block">请在列表中选择一个条目</div>
+          </div>
+
+          <!-- Tab: AI -->
+          <div v-show="mobileTab === 'ai'" class="mobile-pane">
+            <section class="ai-generator-panel mobile-ai-panel">
+              <div class="ai-chat-area">
+                <div v-if="!aiActiveSession" class="ai-chat-empty">
+                  <div class="ai-chat-empty-icon">🤖</div>
+                  <div class="ai-chat-empty-text">新建一个对话开始生成</div>
+                  <button class="btn" type="button" @click="aiCreateSession">+ 新建对话</button>
+                </div>
+                <template v-else>
+                  <div class="ai-chat-messages" ref="aiChatMessagesRef">
+                    <div v-for="(msg, idx) in aiActiveMessages" :key="`mmsg-${idx}`" class="ai-chat-bubble" :class="msg.role">
+                      <div class="ai-chat-bubble-role">{{ msg.role === 'user' ? '👤 你' : '🤖 AI' }}</div>
+                      <div class="ai-chat-bubble-content">{{ msg.content }}</div>
+                    </div>
+                    <div v-if="aiIsGenerating && aiStreamingText" class="ai-chat-bubble assistant streaming">
+                      <div class="ai-chat-bubble-role">🤖 AI</div>
+                      <div class="ai-chat-bubble-content">{{ aiStreamingText }}<span class="ai-cursor">▌</span></div>
+                    </div>
+                    <div v-if="aiIsGenerating && !aiStreamingText" class="ai-chat-bubble assistant streaming">
+                      <div class="ai-chat-bubble-role">🤖 AI</div>
+                      <div class="ai-chat-bubble-content"><span class="ai-thinking">思考中...</span></div>
+                    </div>
+                  </div>
+                  <div class="ai-chat-input-bar">
+                    <label class="ai-context-toggle" title="开启后，AI 将能看到酒馆的预设、世界书和正则上下文">
+                      <input v-model="aiUseContext" type="checkbox" />
+                      <span>{{ aiUseContext ? '📖 附带上下文' : '🔒 纯净模式' }}</span>
+                    </label>
+                    <textarea v-model="aiChatInputText" class="text-input ai-chat-input" placeholder="输入提示词..." rows="2" :disabled="aiIsGenerating" @keydown.enter.exact.prevent="aiSendMessage"></textarea>
+                    <button v-if="!aiIsGenerating" class="btn ai-send-btn" type="button" :disabled="!aiChatInputText.trim()" @click="aiSendMessage">发送</button>
+                    <button v-else class="btn danger ai-stop-btn" type="button" @click="aiStopGeneration">停止</button>
+                  </div>
+                </template>
+              </div>
+            </section>
+          </div>
+
+        </div>
+
+        <!-- Tab Bar -->
+        <nav class="mobile-tab-bar">
+          <button :class="{ active: mobileTab === 'list' }" @click="mobileTab = 'list'">
+            <span class="tab-icon">📋</span><span class="tab-label">列表</span>
+          </button>
+          <button :class="{ active: mobileTab === 'edit' }" @click="mobileTab = 'edit'">
+            <span class="tab-icon">✏️</span><span class="tab-label">编辑</span>
+          </button>
+          <button :class="{ active: mobileTab === 'settings' }" @click="mobileTab = 'settings'">
+            <span class="tab-icon">⚙️</span><span class="tab-label">设置</span>
+          </button>
+          <button :class="{ active: mobileTab === 'ai' }" @click="mobileTab = 'ai'">
+            <span class="tab-icon">🤖</span><span class="tab-label">AI</span>
+          </button>
+        </nav>
+      </div>
+    </template>
+
+    <!-- ═══ Desktop Layout ═══ -->
+    <template v-if="!isMobile">
     <section class="wb-toolbar">
             <label class="toolbar-label">
               <span>世界书</span>
@@ -706,6 +957,8 @@
               {{ hasUnsavedChanges ? '存在未保存修改' : '已同步' }}
             </span>
           </footer>
+    </template>
+    <!-- ═══ End Desktop Layout ═══ -->
 
           <div v-if="showEntryHistoryModal" class="wb-modal-backdrop" @click.self="showEntryHistoryModal = false">
             <div class="wb-history-modal">
@@ -1425,6 +1678,7 @@ const paneResizeState = ref<PaneResizeState | null>(null);
 const hostResizeWindow = ref<Window | null>(null);
 const isMobile = computed(() => viewportWidth.value <= 768);
 const showMobileEditor = computed(() => isMobile.value && selectedEntryUid.value !== null);
+const mobileTab = ref<'list' | 'edit' | 'settings' | 'ai'>('list');
 
 const bindings = reactive({
   global: [] as string[],
@@ -3379,10 +3633,14 @@ function ensureSelectedEntryExists(): void {
 
 function selectEntry(uid: number): void {
   selectedEntryUid.value = uid;
+  if (isMobile.value) {
+    mobileTab.value = 'edit';
+  }
 }
 
 function goBackToList(): void {
   selectedEntryUid.value = null;
+  mobileTab.value = 'list';
 }
 
 function createEntrySnapshotRecord(
@@ -6809,6 +7067,99 @@ watch(currentTheme, () => {
 
 .editor-back-btn:hover {
   background: var(--wb-primary-hover);
+}
+
+/* ═══ Mobile Tab View ═══ */
+.mobile-tab-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mobile-tab-content {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.mobile-pane {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mobile-ai-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-ai-panel .ai-chat-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-danger-zone {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--wb-border);
+}
+
+.mobile-danger-zone .btn {
+  flex: 1;
+}
+
+.mobile-tab-bar {
+  display: flex;
+  border-top: 1px solid var(--wb-border);
+  background: var(--wb-bg-secondary);
+  flex-shrink: 0;
+  padding: 0;
+  height: 52px;
+}
+
+.mobile-tab-bar button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: none;
+  background: transparent;
+  color: var(--wb-text-dim);
+  font-size: 10px;
+  padding: 4px 0;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-tab-bar button.active {
+  color: var(--wb-accent);
+  background: color-mix(in srgb, var(--wb-accent) 8%, transparent);
+}
+
+.mobile-tab-bar .tab-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.mobile-tab-bar .tab-label {
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {
