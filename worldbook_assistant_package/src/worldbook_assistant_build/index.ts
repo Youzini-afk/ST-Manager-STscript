@@ -726,13 +726,43 @@ function toggleFabVisibility(): void {
 
 function createFab(): void {
   const doc = getHostDocument();
-  if (doc.getElementById(FAB_ID)) return;
-  if (!isFabVisible()) return;
+  if (doc.getElementById(FAB_ID)) {
+    console.warn('[WB-FAB] FAB already exists, skipping creation');
+    return;
+  }
+  if (!isFabVisible()) {
+    console.warn('[WB-FAB] FAB visibility is off (localStorage), skipping creation');
+    return;
+  }
 
   const fab = doc.createElement('div');
   fab.id = FAB_ID;
   fab.textContent = '📖';
   fab.title = '世界书助手';
+
+  // Apply ALL critical CSS inline — don't rely on stylesheet for visibility
+  fab.style.cssText = `
+    position: fixed !important;
+    z-index: 99999 !important;
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    background: rgba(15, 23, 42, 0.92) !important;
+    color: #e2e8f0 !important;
+    font-size: 22px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 0 0 1.5px rgba(96, 165, 250, 0.5), 0 4px 16px rgba(0,0,0,0.35) !important;
+    touch-action: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  `;
 
   // Restore saved position or default to bottom-right
   let savedPos: { x: number; y: number } | null = null;
@@ -758,6 +788,10 @@ function createFab(): void {
     fab.style.right = '16px';
     fab.style.bottom = '80px';
   }
+
+  console.warn(`[WB-FAB] Creating FAB in ${doc === document ? 'self' : 'parent'} document. ` +
+    `isMobile=${isMobileView}, viewport=${hostWin.innerWidth}x${hostWin.innerHeight}, ` +
+    `screen=${hostWin.screen.width}x${hostWin.screen.height}`);
 
   // Drag support
   let dragging = false;
