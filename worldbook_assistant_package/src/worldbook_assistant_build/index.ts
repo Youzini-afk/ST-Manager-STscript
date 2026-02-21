@@ -221,35 +221,35 @@ function ensurePanelStyle(): void {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 1px solid rgba(96, 165, 250, 0.35);
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border: none;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #e2e8f0;
   font-size: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  box-shadow: 0 0 0 1.5px rgba(96, 165, 250, 0.3), 0 4px 16px rgba(0,0,0,0.35);
   touch-action: none;
   user-select: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: box-shadow 0.2s;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
 }
 
 #${FAB_ID}:hover {
-  border-color: #60a5fa;
-  box-shadow: 0 4px 20px rgba(96,165,250,0.3);
+  box-shadow: 0 0 0 1.5px #60a5fa, 0 4px 20px rgba(96,165,250,0.3);
 }
 
 #${FAB_ID}.panel-open {
-  border-color: #f43f5e;
+  box-shadow: 0 0 0 1.5px rgba(244, 63, 94, 0.5), 0 4px 16px rgba(0,0,0,0.35);
   font-size: 18px;
 }
 
 #${FAB_ID}.panel-open:hover {
-  border-color: #fb7185;
-  box-shadow: 0 4px 20px rgba(244,63,94,0.3);
+  box-shadow: 0 0 0 1.5px #fb7185, 0 4px 20px rgba(244,63,94,0.3);
 }
 `;
   doc.head.append(style);
