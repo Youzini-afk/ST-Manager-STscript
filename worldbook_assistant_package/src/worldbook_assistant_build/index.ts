@@ -808,10 +808,17 @@ function createFab(): void {
     togglePanel();
   });
 
-  // On mobile, body has `position: fixed; overflow: hidden` which clips the FAB.
-  // Mount inside #sheld (SillyTavern's visible main container) to stay visible.
+  // On mobile SillyTavern, `body { position: fixed; overflow: hidden }` and
+  // #sheld fills 100vw. position:fixed FABs get clipped. Use position:absolute
+  // inside #sheld with inline styles to guarantee visibility.
   const sheld = doc.getElementById('sheld');
   if (isMobileView && sheld) {
+    fab.style.position = 'absolute';
+    fab.style.zIndex = '9999';
+    fab.style.right = '12px';
+    fab.style.bottom = '70px';
+    fab.style.left = 'auto';
+    fab.style.top = 'auto';
     sheld.appendChild(fab);
   } else {
     doc.body.appendChild(fab);
