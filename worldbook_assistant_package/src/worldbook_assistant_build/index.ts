@@ -40,25 +40,37 @@ function ensurePanelStyle(): void {
   z-index: 10020;
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
+  --wb-translate-x: -50%;
+  --wb-translate-y: -50%;
+  --wb-scale: 0.95;
+  transform: translate(var(--wb-translate-x), var(--wb-translate-y)) scale(var(--wb-scale));
   width: min(1280px, calc(100vw - 120px));
   height: calc(100vh - 16px);
   min-width: 920px;
   min-height: 560px;
   max-width: calc(100vw - 16px);
   max-height: calc(100vh - 16px);
-  display: none;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   border: 1px solid var(--wb-host-border, #334155);
   border-radius: 10px;
   background: var(--wb-host-bg, #0b1220);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   resize: both;
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 1, 1), transform 0.2s cubic-bezier(0.4, 0, 1, 1), visibility 0.2s;
+  will-change: transform, opacity;
 }
 
 #${PANEL_ID}.active {
-  display: flex;
-  flex-direction: column;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  --wb-scale: 1;
+  transition: opacity 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 #${PANEL_ID} .wb-assistant-header {
@@ -97,10 +109,18 @@ function ensurePanelStyle(): void {
   align-items: center;
   justify-content: center;
   font-size: 14px;
+  transition: all 0.2s ease;
 }
 
 #${PANEL_ID} .wb-assistant-tool:hover {
   border-color: #60a5fa;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+#${PANEL_ID} .wb-assistant-tool:active {
+  transform: translateY(1px) scale(0.95);
+  box-shadow: none;
 }
 
 #${PANEL_ID} .wb-assistant-theme:hover {
@@ -111,6 +131,18 @@ function ensurePanelStyle(): void {
   border-color: #34d399;
 }
 
+@keyframes wb-pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); border-color: rgba(52, 211, 153, 0.6); }
+  70% { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0); border-color: rgba(52, 211, 153, 1); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); border-color: rgba(52, 211, 153, 0.6); }
+}
+
+#${PANEL_ID} .wb-assistant-save.glow-pulse {
+  animation: wb-pulse-glow 2s infinite ease-out;
+  border-color: #34d399;
+  color: #34d399;
+}
+
 #${PANEL_ID} .wb-assistant-close {
   width: 30px;
   height: 30px;
@@ -119,10 +151,18 @@ function ensurePanelStyle(): void {
   background: var(--wb-host-tool-bg, #1f2937);
   color: var(--wb-host-text, #e2e8f0);
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 #${PANEL_ID} .wb-assistant-close:hover {
   border-color: #f43f5e;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(244,63,94,0.25);
+}
+
+#${PANEL_ID} .wb-assistant-close:active {
+  transform: translateY(1px) scale(0.95);
+  box-shadow: none;
 }
 
 #${PANEL_BODY_ID} {
@@ -156,6 +196,17 @@ function ensurePanelStyle(): void {
   box-shadow: 0 8px 24px rgba(0,0,0,0.45);
   padding: 4px;
   min-width: 140px;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.95);
+  transform-origin: top right;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+#${PANEL_ID} .wb-theme-dropdown.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
 
 #${PANEL_ID} .wb-theme-dropdown button {
@@ -183,9 +234,11 @@ function ensurePanelStyle(): void {
 
 @media (orientation: portrait) {
   #${PANEL_ID} {
-    left: 0;
-    top: 0;
-    transform: none;
+    left: 0 !important;
+    top: 0 !important;
+    transform: none !important;
+    --wb-translate-x: 0;
+    --wb-translate-y: 0;
     width: 100vw !important;
     height: 100vh !important;
     min-width: unset;
@@ -235,13 +288,18 @@ function ensurePanelStyle(): void {
   box-shadow: 0 0 0 1.5px rgba(96, 165, 250, 0.3), 0 4px 16px rgba(0,0,0,0.35);
   touch-action: none;
   user-select: none;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s, transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   transform: translateZ(0);
   -webkit-font-smoothing: antialiased;
 }
 
 #${FAB_ID}:hover {
   box-shadow: 0 0 0 1.5px #60a5fa, 0 4px 20px rgba(96,165,250,0.3);
+  transform: scale(1.05) translateZ(0);
+}
+
+#${FAB_ID}:active {
+  transform: scale(0.92) translateZ(0);
 }
 
 #${FAB_ID}.panel-open {
@@ -343,7 +401,11 @@ const THEME_ITEMS: { key: string; label: string }[] = [
 function toggleThemeDropdown(panel: HTMLDivElement): void {
   const existing = panel.querySelector('.wb-theme-dropdown');
   if (existing) {
-    existing.remove();
+    existing.classList.remove('show');
+    // Cancel any previous pending remove timer
+    const prevTimer = (existing as any).__removeTimer as number | undefined;
+    if (prevTimer) clearTimeout(prevTimer);
+    (existing as any).__removeTimer = setTimeout(() => existing.remove(), 200);
     return;
   }
 
@@ -362,7 +424,9 @@ function toggleThemeDropdown(panel: HTMLDivElement): void {
     btn.dataset.themeKey = item.key;
     btn.addEventListener('click', () => {
       window.dispatchEvent(new CustomEvent('wb-helper:set-theme', { detail: item.key }));
-      dropdown.remove();
+      dropdown.classList.remove('show');
+      const timer = setTimeout(() => dropdown.remove(), 200);
+      (dropdown as any).__removeTimer = timer;
     });
     dropdown.appendChild(btn);
   }
@@ -372,6 +436,9 @@ function toggleThemeDropdown(panel: HTMLDivElement): void {
   } else {
     panel.querySelector('.wb-assistant-header-actions')?.appendChild(dropdown);
   }
+
+  // trigger animation
+  requestAnimationFrame(() => dropdown.classList.add('show'));
 }
 
 function closeThemeDropdownOnOutside(event: PointerEvent): void {
@@ -385,7 +452,9 @@ function closeThemeDropdownOnOutside(event: PointerEvent): void {
   const doc = getHostDocument();
   const dropdown = doc.querySelector('.wb-theme-dropdown');
   if (dropdown) {
-    dropdown.remove();
+    dropdown.classList.remove('show');
+    const timer = setTimeout(() => dropdown.remove(), 200);
+    (dropdown as any).__removeTimer = timer;
   }
 }
 
@@ -413,7 +482,8 @@ function enablePanelDrag(panel: HTMLDivElement): void {
     panel.style.top = `${nextTop}px`;
     panel.style.right = 'auto';
     panel.style.bottom = 'auto';
-    panel.style.transform = 'none';
+    panel.style.setProperty('--wb-translate-x', '0px');
+    panel.style.setProperty('--wb-translate-y', '0px');
   };
 
   const onPointerUp = () => {
@@ -421,6 +491,8 @@ function enablePanelDrag(panel: HTMLDivElement): void {
       return;
     }
     dragging = false;
+    // Restore transition so open/close animations work after drag
+    panel.style.transition = '';
     hostWin.document.removeEventListener('pointermove', onPointerMove, true);
     hostWin.document.removeEventListener('pointerup', onPointerUp, true);
   };
@@ -440,7 +512,10 @@ function enablePanelDrag(panel: HTMLDivElement): void {
     panel.style.top = `${rect.top}px`;
     panel.style.right = 'auto';
     panel.style.bottom = 'auto';
-    panel.style.transform = 'none';
+    panel.style.setProperty('--wb-translate-x', '0px');
+    panel.style.setProperty('--wb-translate-y', '0px');
+    // Fast transition while dragging
+    panel.style.transition = 'none';
     hostWin.document.addEventListener('pointermove', onPointerMove, true);
     hostWin.document.addEventListener('pointerup', onPointerUp, true);
     event.preventDefault();
@@ -448,17 +523,12 @@ function enablePanelDrag(panel: HTMLDivElement): void {
 }
 
 function centerPanel(panel: HTMLDivElement): void {
-  const hostWin = getHostWindow();
-  const rect = panel.getBoundingClientRect();
-  const maxLeft = Math.max(8, hostWin.innerWidth - rect.width - 8);
-  const maxTop = Math.max(8, hostWin.innerHeight - rect.height - 8);
-  const nextLeft = Math.min(maxLeft, Math.max(8, Math.round((hostWin.innerWidth - rect.width) / 2)));
-  const nextTop = Math.min(maxTop, Math.max(8, Math.round((hostWin.innerHeight - rect.height) / 2)));
-  panel.style.left = `${nextLeft}px`;
-  panel.style.top = `${nextTop}px`;
+  panel.style.left = '50%';
+  panel.style.top = '50%';
   panel.style.right = 'auto';
   panel.style.bottom = 'auto';
-  panel.style.transform = 'none';
+  panel.style.setProperty('--wb-translate-x', '-50%');
+  panel.style.setProperty('--wb-translate-y', '-50%');
 }
 
 function setMenuActive(active: boolean): void {
@@ -475,22 +545,22 @@ function setMenuActive(active: boolean): void {
   }
 }
 
-let _showPanelRaf = 0;
 
 function showPanel(): void {
   const doc = getHostDocument();
   const $panel = ensurePanelElement();
   mountAppIntoPanel();
-  $panel.css('visibility', 'hidden');
-  $panel.addClass('active');
   const panelElement = $panel[0] as HTMLDivElement;
+
+  // Clean up any pending inline styles from drag to re-center natively
+  panelElement.style.transition = 'none';
   centerPanel(panelElement);
-  $panel.css('visibility', '');
-  if (_showPanelRaf) cancelAnimationFrame(_showPanelRaf);
-  _showPanelRaf = requestAnimationFrame(() => {
-    _showPanelRaf = 0;
-    centerPanel(panelElement);
-  });
+  // Force a reflow to apply the reset instantly before animating
+  void panelElement.offsetHeight;
+  panelElement.style.transition = '';
+
+  $panel.addClass('active');
+
   isPanelVisible = true;
   setMenuActive(true);
   // 打开面板后主动触发一次刷新
@@ -525,7 +595,6 @@ function hidePanel(): boolean {
   }
   const doc = getHostDocument();
   $(`#${PANEL_ID}`, doc).removeClass('active');
-  if (_showPanelRaf) { cancelAnimationFrame(_showPanelRaf); _showPanelRaf = 0; }
   isPanelVisible = false;
   setMenuActive(false);
   return true;
@@ -753,7 +822,6 @@ function cleanup(): void {
   $(`#${PANEL_ID}`, doc).remove();
   doc.getElementById(PANEL_STYLE_ID)?.remove();
   doc.getElementById(FAB_ID)?.remove();
-  if (_showPanelRaf) { cancelAnimationFrame(_showPanelRaf); _showPanelRaf = 0; }
 
   app?.unmount();
   app = null;

@@ -7,9 +7,10 @@
         <div class="mobile-tab-content">
 
           <!-- Tab: 列表 -->
-          <div v-show="mobileTab === 'list'" class="mobile-pane">
-            <section class="wb-toolbar">
-              <label class="toolbar-label">
+          <Transition name="mobile-tab">
+            <div v-show="mobileTab === 'list'" class="mobile-pane">
+              <section class="wb-toolbar">
+                <label class="toolbar-label">
                 <span>世界书</span>
                 <div ref="worldbookPickerRef" class="worldbook-picker">
                   <button class="worldbook-picker-trigger" type="button" @click="toggleWorldbookPicker">
@@ -41,7 +42,7 @@
                 </div>
               </label>
               <div class="toolbar-btns" style="display:flex;gap:6px;flex-wrap:wrap;">
-                <button class="btn" type="button" :disabled="!hasUnsavedChanges" @click="saveCurrentWorldbook" style="padding:8px 14px;font-size:13px;">💾 保存</button>
+                <button class="btn" type="button" :class="{ 'glow-pulse': hasUnsavedChanges }" :disabled="!hasUnsavedChanges" @click="saveCurrentWorldbook" style="padding:8px 14px;font-size:13px;">💾 保存</button>
                 <button class="btn" type="button" @click="addEntry" style="padding:8px 14px;font-size:13px;">+ 新条目</button>
                 <button class="btn" type="button" @click="triggerImport" style="padding:8px 14px;font-size:13px;">📥 导入</button>
                 <button class="btn" type="button" :disabled="!selectedWorldbookName" @click="exportCurrentWorldbook" style="padding:8px 14px;font-size:13px;">📤 导出</button>
@@ -151,11 +152,12 @@
               </button>
               <div v-if="!filteredEntries.length" class="empty-note">暂无条目</div>
             </div>
-          </div>
+          </Transition>
 
           <!-- Tab: 编辑 -->
-          <div v-show="mobileTab === 'edit'" class="mobile-pane">
-            <template v-if="selectedEntry">
+          <Transition name="mobile-tab">
+            <div v-show="mobileTab === 'edit'" class="mobile-pane">
+              <template v-if="selectedEntry">
               <header class="editor-head">
                 <label class="field editor-comment">
                   <span>备注 (COMMENT)</span>
@@ -195,8 +197,10 @@
             </template>
             <div v-else class="empty-block">请在列表中选择一个条目</div>
           </div>
+          </Transition>
 
           <!-- Tab: 设置 -->
+          <Transition name="mobile-tab">
           <div v-show="mobileTab === 'settings'" class="mobile-pane">
             <template v-if="selectedEntry">
               <article class="editor-card">
@@ -284,8 +288,10 @@
             </template>
             <div v-else class="empty-block">请在列表中选择一个条目</div>
           </div>
+          </Transition>
 
           <!-- Tab: AI -->
+          <Transition name="mobile-tab">
           <div v-show="mobileTab === 'ai'" class="mobile-pane">
             <section class="ai-generator-panel mobile-ai-panel">
               <div class="ai-chat-area">
@@ -322,6 +328,7 @@
               </div>
             </section>
           </div>
+          </Transition>
 
         </div>
       </div>
@@ -1045,7 +1052,7 @@
           </section>
           </div>
 
-          <footer class="wb-status">
+          <footer class="wb-status" :class="{ 'has-unsaved': hasUnsavedChanges }">
             <span>{{ isBusy ? '加载中...' : statusMessage }}</span>
             <span>
               当前条目: {{ draftEntries.length }} | 内容字符: {{ totalContentChars }} |
@@ -5636,6 +5643,20 @@ function updateHostPanelTheme() {
 watch(currentTheme, () => {
   updateHostPanelTheme();
 });
+
+watch(hasUnsavedChanges, (val) => {
+  const panel = document.getElementById('wb-assistant-panel');
+  if (panel) {
+    const saveBtn = panel.querySelector('.wb-assistant-save');
+    if (saveBtn) {
+      if (val) {
+        saveBtn.classList.add('glow-pulse');
+      } else {
+        saveBtn.classList.remove('glow-pulse');
+      }
+    }
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>
@@ -6095,6 +6116,37 @@ watch(currentTheme, () => {
 .global-mode-item-action {
   font-size: 12px;
   flex-shrink: 0;
+}
+
+/* View Transitions */
+.mobile-tab-enter-active,
+.mobile-tab-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+.mobile-tab-enter-from {
+  opacity: 0;
+  transform: translateX(15px);
+}
+.mobile-tab-leave-to {
+  opacity: 0;
+  transform: translateX(-15px);
+}
+
+.desktop-content-enter-active,
+.desktop-content-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.desktop-content-enter-from {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.desktop-content-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
 }
 
 .global-mode-actions {
@@ -6920,6 +6972,18 @@ watch(currentTheme, () => {
   gap: 8px;
   color: var(--wb-text-main);
   flex-wrap: wrap;
+  transition: all 0.3s ease;
+}
+
+@keyframes wb-status-pulse {
+  0% { opacity: 0.8; box-shadow: 0 0 0 rgba(250, 204, 21, 0); }
+  50% { opacity: 1; color: #facc15; box-shadow: 0 0 12px rgba(250, 204, 21, 0.2); }
+  100% { opacity: 0.8; box-shadow: 0 0 0 rgba(250, 204, 21, 0); }
+}
+
+.wb-status.has-unsaved {
+  animation: wb-status-pulse 2s infinite ease-in-out;
+  border: 1px solid rgba(250, 204, 21, 0.4);
 }
 
 .btn {
@@ -6929,6 +6993,20 @@ watch(currentTheme, () => {
   border-radius: 7px;
   padding: 5px 10px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+@keyframes wb-btn-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); border-color: rgba(52, 211, 153, 0.6); }
+  70% { box-shadow: 0 0 0 4px rgba(52, 211, 153, 0); border-color: rgba(52, 211, 153, 1); }
+  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); border-color: rgba(52, 211, 153, 0.6); }
+}
+
+.btn.glow-pulse {
+  animation: wb-btn-pulse 2s infinite ease-out;
+  border-color: #34d399;
+  color: #34d399;
+  font-weight: 500;
 }
 
 .btn:hover:not(:disabled) {
