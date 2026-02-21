@@ -180,7 +180,7 @@ function ensurePanelStyle(): void {
   color: #c4b5fd;
 }
 
-@media (max-width: 768px) {
+@media (orientation: portrait) {
   #${PANEL_ID} {
     left: 0;
     top: 0;
@@ -308,6 +308,8 @@ function ensurePanelElement(): JQuery {
     toggleThemeDropdown($panel[0] as HTMLDivElement);
   });
   // Close theme dropdown on clicks elsewhere
+  // Only register once — guard against duplicate registration
+  getHostDocument().removeEventListener('pointerdown', closeThemeDropdownOnOutside, true);
   getHostDocument().addEventListener('pointerdown', closeThemeDropdownOnOutside, true);
   $panel.off(`click${EVENT_NS}`, '.wb-assistant-close').on(`click${EVENT_NS}`, '.wb-assistant-close', () => {
     hidePanel();
@@ -386,7 +388,7 @@ function enablePanelDrag(panel: HTMLDivElement): void {
   let offsetX = 0;
   let offsetY = 0;
 
-  const onMouseMove = (event: MouseEvent) => {
+  const onPointerMove = (event: PointerEvent) => {
     if (!dragging) {
       return;
     }
@@ -402,16 +404,16 @@ function enablePanelDrag(panel: HTMLDivElement): void {
     panel.style.transform = 'none';
   };
 
-  const onMouseUp = () => {
+  const onPointerUp = () => {
     if (!dragging) {
       return;
     }
     dragging = false;
-    hostWin.document.removeEventListener('mousemove', onMouseMove, true);
-    hostWin.document.removeEventListener('mouseup', onMouseUp, true);
+    hostWin.document.removeEventListener('pointermove', onPointerMove, true);
+    hostWin.document.removeEventListener('pointerup', onPointerUp, true);
   };
 
-  handle.addEventListener('mousedown', event => {
+  handle.addEventListener('pointerdown', event => {
     if (event.button !== 0) {
       return;
     }
@@ -427,8 +429,8 @@ function enablePanelDrag(panel: HTMLDivElement): void {
     panel.style.right = 'auto';
     panel.style.bottom = 'auto';
     panel.style.transform = 'none';
-    hostWin.document.addEventListener('mousemove', onMouseMove, true);
-    hostWin.document.addEventListener('mouseup', onMouseUp, true);
+    hostWin.document.addEventListener('pointermove', onPointerMove, true);
+    hostWin.document.addEventListener('pointerup', onPointerUp, true);
     event.preventDefault();
   });
 }
@@ -461,6 +463,8 @@ function setMenuActive(active: boolean): void {
   }
 }
 
+let _showPanelRaf = 0;
+
 function showPanel(): void {
   const doc = getHostDocument();
   const $panel = ensurePanelElement();
@@ -470,7 +474,9 @@ function showPanel(): void {
   const panelElement = $panel[0] as HTMLDivElement;
   centerPanel(panelElement);
   $panel.css('visibility', '');
-  requestAnimationFrame(() => {
+  if (_showPanelRaf) cancelAnimationFrame(_showPanelRaf);
+  _showPanelRaf = requestAnimationFrame(() => {
+    _showPanelRaf = 0;
     centerPanel(panelElement);
   });
   isPanelVisible = true;
@@ -507,6 +513,7 @@ function hidePanel(): boolean {
   }
   const doc = getHostDocument();
   $(`#${PANEL_ID}`, doc).removeClass('active');
+  if (_showPanelRaf) { cancelAnimationFrame(_showPanelRaf); _showPanelRaf = 0; }
   isPanelVisible = false;
   setMenuActive(false);
   return true;
@@ -552,20 +559,30 @@ function ensureMenuItem(): boolean {
   }
 }
 
+let _menuObserverRaf: number | null = null;
+
 function startMenuObserver(): void {
   const doc = getHostDocument();
   if (menuObserver) {
     return;
   }
   menuObserver = new MutationObserver(() => {
-    ensureMenuItem();
+    // Debounce with rAF to avoid high-frequency re-entry
+    if (_menuObserverRaf) return;
+    _menuObserverRaf = requestAnimationFrame(() => {
+      _menuObserverRaf = null;
+      ensureMenuItem();
+    });
   });
-  menuObserver.observe(doc.body, { childList: true, subtree: true });
+  // Only watch #extensionsMenu if it exists, else fall back to body
+  const menu = doc.getElementById('extensionsMenu');
+  menuObserver.observe(menu || doc.body, { childList: true, subtree: true });
 }
 
 function stopMenuObserver(): void {
   menuObserver?.disconnect();
   menuObserver = null;
+  if (_menuObserverRaf) { cancelAnimationFrame(_menuObserverRaf); _menuObserverRaf = null; }
 }
 
 function ensureMenuRetry(): void {
@@ -660,7 +677,7 @@ function createFab(): void {
   });
 
   fab.addEventListener('click', () => {
-    if (dragMoved) return; // Don't toggle if was dragging
+    if (dragMoved) { dragMoved = false; return; } // Don't toggle if was dragging
     togglePanel();
   });
 
@@ -691,10 +708,12 @@ function cleanup(): void {
   stopMenuRetry();
   stopMenuObserver();
   $(doc).off(EVENT_NS);
+  doc.removeEventListener('pointerdown', closeThemeDropdownOnOutside, true);
   $(`#${MENU_ID}`, doc).remove();
   $(`#${PANEL_ID}`, doc).remove();
   doc.getElementById(PANEL_STYLE_ID)?.remove();
   doc.getElementById(FAB_ID)?.remove();
+  if (_showPanelRaf) { cancelAnimationFrame(_showPanelRaf); _showPanelRaf = 0; }
 
   app?.unmount();
   app = null;

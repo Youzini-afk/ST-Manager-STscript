@@ -1778,13 +1778,19 @@ const screenHeight = ref(typeof window !== 'undefined' ? window.screen.height : 
 const isMobile = computed(() => screenWidth.value < screenHeight.value);
 
 // Keep screen dimensions in sync on orientation change
+let _screenSyncCleanup: (() => void) | null = null;
 if (typeof window !== 'undefined') {
   const syncScreenDims = () => {
     screenWidth.value = window.screen.width;
     screenHeight.value = window.screen.height;
   };
-  window.addEventListener('orientationchange', () => setTimeout(syncScreenDims, 150));
+  const orientHandler = () => setTimeout(syncScreenDims, 150);
+  window.addEventListener('orientationchange', orientHandler);
   window.addEventListener('resize', syncScreenDims);
+  _screenSyncCleanup = () => {
+    window.removeEventListener('orientationchange', orientHandler);
+    window.removeEventListener('resize', syncScreenDims);
+  };
 }
 const showMobileEditor = computed(() => isMobile.value && selectedEntryUid.value !== null);
 const mobileTab = ref<'list' | 'edit' | 'settings' | 'ai'>('list');
@@ -5609,6 +5615,8 @@ onUnmounted(() => {
   hostResizeWindow.value?.document.removeEventListener('keydown', onHostKeyDownForWorldbookPicker, true);
   hostResizeWindow.value?.removeEventListener('resize', handleFloatingWindowResize);
   hostResizeWindow.value = null;
+  _screenSyncCleanup?.();
+  _screenSyncCleanup = null;
 });
 
 function updateHostPanelTheme() {
