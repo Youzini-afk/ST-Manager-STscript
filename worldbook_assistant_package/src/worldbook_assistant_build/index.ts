@@ -808,21 +808,12 @@ function createFab(): void {
     togglePanel();
   });
 
-  // On mobile SillyTavern, `body { position: fixed; overflow: hidden }` and
-  // #sheld fills 100vw. position:fixed FABs get clipped. Use position:absolute
-  // inside #sheld with inline styles to guarantee visibility.
-  const sheld = doc.getElementById('sheld');
-  if (isMobileView && sheld) {
-    fab.style.position = 'absolute';
-    fab.style.zIndex = '9999';
-    fab.style.right = '12px';
-    fab.style.bottom = '70px';
-    fab.style.left = 'auto';
-    fab.style.top = 'auto';
-    sheld.appendChild(fab);
-  } else {
-    doc.body.appendChild(fab);
+  // Always mount to body. On mobile add a bright temp style so it's impossible to miss.
+  if (isMobileView) {
+    fab.style.background = '#ff0000';
+    fab.style.boxShadow = '0 0 20px 5px #ff0000';
   }
+  doc.body.appendChild(fab);
 }
 
 function init(): void {
