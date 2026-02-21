@@ -727,11 +727,11 @@ function toggleFabVisibility(): void {
 function createFab(): void {
   const doc = getHostDocument();
   if (doc.getElementById(FAB_ID)) {
-    console.warn('[WB-FAB] FAB already exists, skipping creation');
+    toastr.warning('[FAB] 已存在，跳过创建', 'FAB Debug');
     return;
   }
   if (!isFabVisible()) {
-    console.warn('[WB-FAB] FAB visibility is off (localStorage), skipping creation');
+    toastr.warning('[FAB] localStorage 设为隐藏，跳过创建', 'FAB Debug');
     return;
   }
 
@@ -752,7 +752,6 @@ function createFab(): void {
     || (hostWin.innerWidth < 600 && hostWin.innerHeight > hostWin.innerWidth);
 
   if (isMobileView) {
-    // On mobile, always use a safe bottom-right position (ignore desktop saved pos)
     fab.style.right = '16px';
     fab.style.bottom = '80px';
     fab.style.left = 'auto';
@@ -764,10 +763,6 @@ function createFab(): void {
     fab.style.right = '16px';
     fab.style.bottom = '80px';
   }
-
-  console.warn(`[WB-FAB] Creating FAB in ${doc === document ? 'self' : 'parent'} document. ` +
-    `isMobile=${isMobileView}, viewport=${hostWin.innerWidth}x${hostWin.innerHeight}, ` +
-    `screen=${hostWin.screen.width}x${hostWin.screen.height}`);
 
   // Drag support
   let dragging = false;
@@ -808,7 +803,6 @@ function createFab(): void {
   fab.addEventListener('pointerup', () => {
     if (!dragging) return;
     dragging = false;
-    // Save position
     try {
       const rect = fab.getBoundingClientRect();
       localStorage.setItem(FAB_POS_KEY, JSON.stringify({ x: rect.left, y: rect.top }));
@@ -816,15 +810,34 @@ function createFab(): void {
   });
 
   fab.addEventListener('click', () => {
-    if (dragMoved) { dragMoved = false; return; } // Don't toggle if was dragging
+    if (dragMoved) { dragMoved = false; return; }
     togglePanel();
   });
 
-  // Append to documentElement (<html>) instead of body.
-  // SillyTavern sets `body { position: fixed; overflow: hidden }` on mobile,
-  // which turns body into a containing block for fixed-position children
-  // and clips them with overflow:hidden. Using <html> escapes this.
-  (doc.documentElement || doc.body).appendChild(fab);
+  doc.body.appendChild(fab);
+
+  // Diagnostic: report FAB state after a short delay
+  setTimeout(() => {
+    const check = doc.getElementById(FAB_ID);
+    if (!check) {
+      toastr.error('[FAB] 创建后被移除了！', 'FAB Debug');
+      return;
+    }
+    const cs = hostWin.getComputedStyle(check);
+    const rect = check.getBoundingClientRect();
+    const info = [
+      `in DOM: ✅`,
+      `parent: ${check.parentElement?.tagName}`,
+      `display: ${cs.display}`,
+      `visibility: ${cs.visibility}`,
+      `opacity: ${cs.opacity}`,
+      `position: ${cs.position}`,
+      `z-index: ${cs.zIndex}`,
+      `rect: ${Math.round(rect.left)},${Math.round(rect.top)} ${Math.round(rect.width)}x${Math.round(rect.height)}`,
+      `viewport: ${hostWin.innerWidth}x${hostWin.innerHeight}`,
+    ].join(' | ');
+    toastr.info(info, 'FAB Debug', { timeOut: 15000 });
+  }, 1000);
 }
 
 function init(): void {
