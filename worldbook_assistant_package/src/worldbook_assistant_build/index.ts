@@ -726,14 +726,8 @@ function toggleFabVisibility(): void {
 
 function createFab(): void {
   const doc = getHostDocument();
-  if (doc.getElementById(FAB_ID)) {
-    toastr.warning('[FAB] 已存在，跳过创建', 'FAB Debug');
-    return;
-  }
-  if (!isFabVisible()) {
-    toastr.warning('[FAB] localStorage 设为隐藏，跳过创建', 'FAB Debug');
-    return;
-  }
+  if (doc.getElementById(FAB_ID)) return;
+  if (!isFabVisible()) return;
 
   const fab = doc.createElement('div');
   fab.id = FAB_ID;
@@ -814,30 +808,14 @@ function createFab(): void {
     togglePanel();
   });
 
-  doc.body.appendChild(fab);
-
-  // Diagnostic: report FAB state after a short delay
-  setTimeout(() => {
-    const check = doc.getElementById(FAB_ID);
-    if (!check) {
-      toastr.error('[FAB] 创建后被移除了！', 'FAB Debug');
-      return;
-    }
-    const cs = hostWin.getComputedStyle(check);
-    const rect = check.getBoundingClientRect();
-    const info = [
-      `in DOM: ✅`,
-      `parent: ${check.parentElement?.tagName}`,
-      `display: ${cs.display}`,
-      `visibility: ${cs.visibility}`,
-      `opacity: ${cs.opacity}`,
-      `position: ${cs.position}`,
-      `z-index: ${cs.zIndex}`,
-      `rect: ${Math.round(rect.left)},${Math.round(rect.top)} ${Math.round(rect.width)}x${Math.round(rect.height)}`,
-      `viewport: ${hostWin.innerWidth}x${hostWin.innerHeight}`,
-    ].join(' | ');
-    toastr.info(info, 'FAB Debug', { timeOut: 15000 });
-  }, 1000);
+  // On mobile, body has `position: fixed; overflow: hidden` which clips the FAB.
+  // Mount inside #sheld (SillyTavern's visible main container) to stay visible.
+  const sheld = doc.getElementById('sheld');
+  if (isMobileView && sheld) {
+    sheld.appendChild(fab);
+  } else {
+    doc.body.appendChild(fab);
+  }
 }
 
 function init(): void {
@@ -858,9 +836,9 @@ function init(): void {
   try {
     createFab();
   } catch (e) {
-    toastr.error(`[FAB] createFab 出错: ${e}`, 'FAB Error', { timeOut: 15000 });
+    console.warn('[WB-FAB] createFab error:', e);
   }
-  toastr.success('世界书助手已挂载 (v1.2.25)', 'Worldbook Assistant');
+  toastr.success('世界书助手已挂载到魔法棒菜单', 'Worldbook Assistant');
 }
 
 function cleanup(): void {
