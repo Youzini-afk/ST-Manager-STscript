@@ -282,7 +282,7 @@ function ensurePanelStyle(): void {
 
 #${FAB_ID} {
   position: fixed;
-  z-index: 10050;
+  z-index: 10019;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -739,30 +739,6 @@ function createFab(): void {
   fab.id = FAB_ID;
   fab.textContent = '📖';
   fab.title = '世界书助手';
-
-  // Apply ALL critical CSS inline — don't rely on stylesheet for visibility
-  fab.style.cssText = `
-    position: fixed !important;
-    z-index: 99999 !important;
-    width: 48px !important;
-    height: 48px !important;
-    border-radius: 50% !important;
-    border: none !important;
-    background: rgba(15, 23, 42, 0.92) !important;
-    color: #e2e8f0 !important;
-    font-size: 22px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-    box-shadow: 0 0 0 1.5px rgba(96, 165, 250, 0.5), 0 4px 16px rgba(0,0,0,0.35) !important;
-    touch-action: none !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
-    pointer-events: auto !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  `;
 
   // Restore saved position or default to bottom-right
   let savedPos: { x: number; y: number } | null = null;
