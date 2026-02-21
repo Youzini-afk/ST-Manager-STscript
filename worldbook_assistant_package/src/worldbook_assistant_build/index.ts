@@ -820,7 +820,11 @@ function createFab(): void {
     togglePanel();
   });
 
-  doc.body.appendChild(fab);
+  // Append to documentElement (<html>) instead of body.
+  // SillyTavern sets `body { position: fixed; overflow: hidden }` on mobile,
+  // which turns body into a containing block for fixed-position children
+  // and clips them with overflow:hidden. Using <html> escapes this.
+  (doc.documentElement || doc.body).appendChild(fab);
 }
 
 function init(): void {
