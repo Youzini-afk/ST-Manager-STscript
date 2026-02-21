@@ -4,6 +4,8 @@ import WorldbookAssistantApp from './App.vue';
 
 const MENU_ID = 'wb-assistant-menu-item';
 const PANEL_ID = 'wb-assistant-panel';
+const FAB_ID = 'wb-assistant-fab';
+const FAB_POS_KEY = '__WB_FAB_POS__';
 const PANEL_STYLE_ID = 'wb-assistant-panel-style';
 const PANEL_BODY_ID = 'wb-assistant-panel-body';
 const EVENT_NS = '.wbAssistantMenu';
@@ -212,6 +214,43 @@ function ensurePanelStyle(): void {
     flex-direction: column;
   }
 }
+
+#${FAB_ID} {
+  position: fixed;
+  z-index: 10019;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #e2e8f0;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  touch-action: none;
+  user-select: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#${FAB_ID}:hover {
+  border-color: #60a5fa;
+  box-shadow: 0 4px 20px rgba(96,165,250,0.3);
+}
+
+#${FAB_ID}.panel-open {
+  border-color: #f43f5e;
+  font-size: 18px;
+}
+
+#${FAB_ID}.panel-open:hover {
+  border-color: #fb7185;
+  box-shadow: 0 4px 20px rgba(244,63,94,0.3);
+}
 `;
   doc.head.append(style);
 }
@@ -411,10 +450,15 @@ function centerPanel(panel: HTMLDivElement): void {
 function setMenuActive(active: boolean): void {
   const doc = getHostDocument();
   const $menuItem = $(`#${MENU_ID}`, doc);
-  if (!$menuItem.length) {
-    return;
+  if ($menuItem.length) {
+    $menuItem.toggleClass('active', active);
   }
-  $menuItem.toggleClass('active', active);
+  // Sync FAB state
+  const fab = doc.getElementById(FAB_ID);
+  if (fab) {
+    fab.classList.toggle('panel-open', active);
+    fab.textContent = active ? '✕' : '📖';
+  }
 }
 
 function showPanel(): void {
@@ -536,6 +580,85 @@ function stopMenuRetry(): void {
   menuRetryTimer = null;
 }
 
+function createFab(): void {
+  const doc = getHostDocument();
+  if (doc.getElementById(FAB_ID)) return;
+
+  const fab = doc.createElement('div');
+  fab.id = FAB_ID;
+  fab.textContent = '📖';
+  fab.title = '世界书助手';
+
+  // Restore saved position or default to bottom-right
+  let savedPos: { x: number; y: number } | null = null;
+  try {
+    const raw = localStorage.getItem(FAB_POS_KEY);
+    if (raw) savedPos = JSON.parse(raw);
+  } catch { /* ignore */ }
+
+  const hostWin = getHostWindow();
+  if (savedPos) {
+    fab.style.left = Math.min(savedPos.x, hostWin.innerWidth - 56) + 'px';
+    fab.style.top = Math.min(savedPos.y, hostWin.innerHeight - 56) + 'px';
+  } else {
+    fab.style.right = '16px';
+    fab.style.bottom = '80px';
+  }
+
+  // Drag support
+  let dragging = false;
+  let dragMoved = false;
+  let startX = 0;
+  let startY = 0;
+  let fabStartX = 0;
+  let fabStartY = 0;
+
+  fab.addEventListener('pointerdown', (e: PointerEvent) => {
+    if (e.button !== 0) return;
+    dragging = true;
+    dragMoved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = fab.getBoundingClientRect();
+    fabStartX = rect.left;
+    fabStartY = rect.top;
+    fab.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  fab.addEventListener('pointermove', (e: PointerEvent) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragMoved = true;
+    const maxX = hostWin.innerWidth - 56;
+    const maxY = hostWin.innerHeight - 56;
+    const nx = Math.max(0, Math.min(maxX, fabStartX + dx));
+    const ny = Math.max(0, Math.min(maxY, fabStartY + dy));
+    fab.style.left = nx + 'px';
+    fab.style.top = ny + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+  });
+
+  fab.addEventListener('pointerup', () => {
+    if (!dragging) return;
+    dragging = false;
+    // Save position
+    try {
+      const rect = fab.getBoundingClientRect();
+      localStorage.setItem(FAB_POS_KEY, JSON.stringify({ x: rect.left, y: rect.top }));
+    } catch { /* ignore */ }
+  });
+
+  fab.addEventListener('click', () => {
+    if (dragMoved) return; // Don't toggle if was dragging
+    togglePanel();
+  });
+
+  doc.body.appendChild(fab);
+}
+
 function init(): void {
   // 不使用聊天框上方脚本按钮
   replaceScriptButtons([]);
@@ -551,6 +674,7 @@ function init(): void {
     ensureMenuRetry();
   }
   startMenuObserver();
+  createFab();
   toastr.success('世界书助手已挂载到魔法棒菜单', 'Worldbook Assistant');
 }
 
@@ -562,6 +686,7 @@ function cleanup(): void {
   $(`#${MENU_ID}`, doc).remove();
   $(`#${PANEL_ID}`, doc).remove();
   doc.getElementById(PANEL_STYLE_ID)?.remove();
+  doc.getElementById(FAB_ID)?.remove();
 
   app?.unmount();
   app = null;
