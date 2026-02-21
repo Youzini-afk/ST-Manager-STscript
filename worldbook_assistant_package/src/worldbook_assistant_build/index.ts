@@ -520,28 +520,36 @@ function togglePanel(): void {
   }
 }
 
-function ensureMenuItem(): boolean {
-  const doc = getHostDocument();
-  const $menu = $('#extensionsMenu', doc);
-  if (!$menu.length) {
-    return false;
-  }
+let _insideMenuEnsure = false;
 
-  const $existing = $(`#${MENU_ID}`, doc);
-  if ($existing.length && !$existing.closest('#extensionsMenu').length) {
-    $existing.remove();
-  }
-  if (!$(`#${MENU_ID}`, doc).length) {
-    const menuHtml = `
+function ensureMenuItem(): boolean {
+  if (_insideMenuEnsure) return true;
+  _insideMenuEnsure = true;
+  try {
+    const doc = getHostDocument();
+    const $menu = $('#extensionsMenu', doc);
+    if (!$menu.length) {
+      return false;
+    }
+
+    const $existing = $(`#${MENU_ID}`, doc);
+    if ($existing.length && !$existing.closest('#extensionsMenu').length) {
+      $existing.remove();
+    }
+    if (!$(`#${MENU_ID}`, doc).length) {
+      const menuHtml = `
 <div id="${MENU_ID}" class="list-group-item flex-container flexGap5 interactable" title="世界书助手" tabIndex="0">
   <i class="fa-solid fa-book-open"></i>
   <span>世界书助手</span>
 </div>
 `;
-    $menu.append(menuHtml);
+      $menu.append(menuHtml);
+    }
+    setMenuActive(isPanelVisible);
+    return true;
+  } finally {
+    _insideMenuEnsure = false;
   }
-  setMenuActive(isPanelVisible);
-  return true;
 }
 
 function startMenuObserver(): void {
