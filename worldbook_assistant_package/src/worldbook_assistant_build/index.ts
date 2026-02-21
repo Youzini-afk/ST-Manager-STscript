@@ -855,8 +855,12 @@ function init(): void {
     ensureMenuRetry();
   }
   startMenuObserver();
-  createFab();
-  toastr.success('世界书助手已挂载到魔法棒菜单', 'Worldbook Assistant');
+  try {
+    createFab();
+  } catch (e) {
+    toastr.error(`[FAB] createFab 出错: ${e}`, 'FAB Error', { timeOut: 15000 });
+  }
+  toastr.success('世界书助手已挂载 (v1.2.25)', 'Worldbook Assistant');
 }
 
 function cleanup(): void {
