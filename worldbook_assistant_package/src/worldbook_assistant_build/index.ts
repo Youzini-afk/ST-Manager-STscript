@@ -6,6 +6,7 @@ const MENU_ID = 'wb-assistant-menu-item';
 const PANEL_ID = 'wb-assistant-panel';
 const FAB_ID = 'wb-assistant-fab';
 const FAB_POS_KEY = '__WB_FAB_POS__';
+const FAB_VISIBLE_KEY = '__WB_FAB_VISIBLE__';
 const PANEL_STYLE_ID = 'wb-assistant-panel-style';
 const PANEL_BODY_ID = 'wb-assistant-panel-body';
 const EVENT_NS = '.wbAssistantMenu';
@@ -251,6 +252,11 @@ function ensurePanelStyle(): void {
 #${FAB_ID}.panel-open:hover {
   box-shadow: 0 0 0 1.5px #fb7185, 0 4px 20px rgba(244,63,94,0.3);
 }
+
+#${PANEL_ID} .wb-assistant-fab-toggle.fab-on {
+  border-color: #34d399;
+  color: #34d399;
+}
 `;
   doc.head.append(style);
 }
@@ -285,6 +291,7 @@ function ensurePanelElement(): JQuery {
     <div class="wb-assistant-header-title">世界书助手</div>
     <div class="wb-assistant-header-actions">
       <button type="button" class="wb-assistant-tool wb-assistant-refresh" title="刷新">↻</button>
+      <button type="button" class="wb-assistant-tool wb-assistant-fab-toggle" title="悬浮按钮">📌</button>
       <button type="button" class="wb-assistant-tool wb-assistant-theme" title="切换主题">🎨</button>
       <button type="button" class="wb-assistant-tool wb-assistant-save" title="保存">💾</button>
       <button type="button" class="wb-assistant-close" title="关闭">×</button>
@@ -314,6 +321,11 @@ function ensurePanelElement(): JQuery {
   $panel.off(`click${EVENT_NS}`, '.wb-assistant-close').on(`click${EVENT_NS}`, '.wb-assistant-close', () => {
     hidePanel();
   });
+  $panel.off(`click${EVENT_NS}`, '.wb-assistant-fab-toggle').on(`click${EVENT_NS}`, '.wb-assistant-fab-toggle', () => {
+    toggleFabVisibility();
+  });
+  // Sync FAB toggle button state
+  syncFabToggleButton();
 
   return $panel;
 }
@@ -605,9 +617,37 @@ function stopMenuRetry(): void {
   menuRetryTimer = null;
 }
 
+function isFabVisible(): boolean {
+  try {
+    return localStorage.getItem(FAB_VISIBLE_KEY) !== 'false';
+  } catch { return true; }
+}
+
+function syncFabToggleButton(): void {
+  const doc = getHostDocument();
+  const btn = doc.querySelector(`#${PANEL_ID} .wb-assistant-fab-toggle`);
+  if (btn) {
+    btn.classList.toggle('fab-on', isFabVisible());
+  }
+}
+
+function toggleFabVisibility(): void {
+  const doc = getHostDocument();
+  const fab = doc.getElementById(FAB_ID);
+  const visible = !isFabVisible();
+  try { localStorage.setItem(FAB_VISIBLE_KEY, String(visible)); } catch { /* ignore */ }
+  if (visible) {
+    if (!fab) createFab();
+  } else {
+    fab?.remove();
+  }
+  syncFabToggleButton();
+}
+
 function createFab(): void {
   const doc = getHostDocument();
   if (doc.getElementById(FAB_ID)) return;
+  if (!isFabVisible()) return;
 
   const fab = doc.createElement('div');
   fab.id = FAB_ID;
