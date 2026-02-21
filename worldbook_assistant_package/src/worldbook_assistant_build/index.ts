@@ -282,7 +282,7 @@ function ensurePanelStyle(): void {
 
 #${FAB_ID} {
   position: fixed;
-  z-index: 10019;
+  z-index: 10050;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -742,7 +742,16 @@ function createFab(): void {
   } catch { /* ignore */ }
 
   const hostWin = getHostWindow();
-  if (savedPos) {
+  const isMobileView = hostWin.screen.width < hostWin.screen.height
+    || (hostWin.innerWidth < 600 && hostWin.innerHeight > hostWin.innerWidth);
+
+  if (isMobileView) {
+    // On mobile, always use a safe bottom-right position (ignore desktop saved pos)
+    fab.style.right = '16px';
+    fab.style.bottom = '80px';
+    fab.style.left = 'auto';
+    fab.style.top = 'auto';
+  } else if (savedPos) {
     fab.style.left = Math.min(savedPos.x, hostWin.innerWidth - 56) + 'px';
     fab.style.top = Math.min(savedPos.y, hostWin.innerHeight - 56) + 'px';
   } else {
