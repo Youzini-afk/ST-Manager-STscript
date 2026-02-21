@@ -249,6 +249,17 @@ function ensurePanelStyle(): void {
     border: none;
     box-shadow: none;
     resize: none;
+    /* Mobile: use display:none to avoid blocking FAB behind the invisible panel */
+    display: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: none;
+  }
+
+  #${PANEL_ID}.active {
+    display: flex;
+    flex-direction: column;
   }
 
   #${PANEL_ID} .wb-assistant-header {
